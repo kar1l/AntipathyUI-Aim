@@ -84,7 +84,7 @@ local Settings = {
 			Enabled = false,
 			FontSize = 13,
 			Position = "Bottom",
-			Color = "C8C8C8",
+			Color = "FFFFFF",
 			ShowStuds = true,
 		},
 		Health = {
@@ -108,6 +108,7 @@ local Settings = {
 			Thickness = 1,
 			Color = "FFFFFF",
 		},
+		AvatarPreview = false,
 	},
 }
 
@@ -209,7 +210,7 @@ loaderSpinner.Position = UDim2.new(0.5, -25, 0, 36)
 
 task.spawn(function()
 	local baseX, baseY = 0, 12
-	local glitchNames = {"Antipathy", "An+!p4thy", " @nt1p4thy", "A#t!p4thy", "#!$#%^#&)", "aNtiPAtHy"}
+	local glitchNames = {"Why, Antipathy", " @nt1p4thy", "wHyY, A#t!p4thy", "An+ip4thy","wwHy, aNtiPAtHy", "#!$#%^#&)"}
 	while titleLabel.Parent do
 		titleLabel.Position = UDim2.new(0, baseX + math.random(-1, 1), 0, baseY + math.random(-1, 1))
 		titleLabel.TextTransparency = math.random() * 0.12
@@ -390,7 +391,7 @@ local bgFooter = Instance.new("TextLabel")
 bgFooter.BackgroundTransparency = 1
 bgFooter.Size = UDim2.new(0, 160, 0, 18)
 bgFooter.Position = UDim2.new(0, 0, 0, 0)
-bgFooter.Text = "Antipathy"
+bgFooter.Text = "All Heil Antipathy & @hiies"
 bgFooter.TextColor3 = Color3.fromRGB(150, 150, 150)
 bgFooter.Font = Enum.Font.GothamBold
 bgFooter.TextSize = 14
@@ -398,8 +399,8 @@ bgFooter.ZIndex = 3
 bgFooter.Parent = frame
 
 task.spawn(function()
-	local baseText = "Antipathy"
-	local gn = {baseText, "An+1p4##y", "4n+1path-y", "A-A-AnT1PAth..y", "@nt!p4thy"}
+	local baseText = "All Heil Antipathy & @hiies"
+	local gn = {baseText, "All Heil Antipathy & @hiies", "A11 H3il Ant1p4##y & @hiies", "Hell H31l 4n+1path-y & @hiies", "A1l He1l A-A-AnT1PAth..y"}
 	while bgFooter.Parent do
 		if math.random(1, 6) == 1 then
 			for _ = 1, math.random(4, 8) do bgFooter.Text = gn[math.random(#gn)]; task.wait(0.025 + math.random() * 0.03) end
@@ -410,7 +411,7 @@ task.spawn(function()
 end)
 
 local bdx, bdy = 1, 1
-local bspeed = 0.5
+local bspeed = 0.1
 local bfx, bfy = 0, 0
 local blt = 0
 task.spawn(function()
@@ -491,7 +492,7 @@ end)
 -- Title glitch
 task.spawn(function()
 	local bx, by = 16, 6
-	local gn = {"Antipathy", "An+!p4thy", "H31l An+ip4t#y", "#@$%^&*)", "yhtapitnA", "A-A-Antipathy"}
+	local gn = {"Heil Antipathy", "H3ll An+!p4thy", "H31l An+ip4t#y", "!%#? Ant1p4thy", "Heil !@#$%^&*)", "85912011420916120825", "yhtapitnA lieH", "A-A-Antipathy", "H#1l An+1p@+#y", "H3il Heil H31l lieH" }
 	while title.Parent do
 		title.Position = UDim2.new(0, bx + math.random(-2, 2), 0, by + math.random(-1, 1))
 		title.TextTransparency = math.random() * 0.12
@@ -503,7 +504,7 @@ task.spawn(function()
 				title.TextTransparency = math.random() * 0.6
 				task.wait(0.025 + math.random() * 0.03)
 			end
-			title.Text = "Antipathy"; title.Position = UDim2.new(0, bx, 0, by)
+			title.Text = "Heil Antipathy"; title.Position = UDim2.new(0, bx, 0, by)
 			title.TextColor3 = Color3.fromRGB(255,255,255); title.TextTransparency = 0
 		end
 		task.wait(0.05 + math.random() * 0.08)
@@ -514,7 +515,7 @@ local subtitle = Instance.new("TextLabel")
 subtitle.BackgroundTransparency = 1
 subtitle.Position = UDim2.new(0, 16, 0, 26)
 subtitle.Size = UDim2.new(0, 200, 0, 15)
-subtitle.Text = "Aim & Visuals — CTRL+A To Hide"
+subtitle.Text = "Why, Antipathy? - CTRL+A To Hide"
 subtitle.TextColor3 = Color3.fromRGB(160, 160, 160)
 subtitle.Font = Enum.Font.GothamMedium
 subtitle.TextSize = 13
@@ -569,8 +570,17 @@ local closeBtn = makeTopButton("x", FRAME_W - 37, 15, {
 	stroke = Color3.fromRGB(120,120,120)
 })
 
+function formatImageId(str)
+	if not str or str == "" then return "" end
+	local id = str:match("%d+")
+	if id then
+		return "rbxthumb://type=Asset&id=" .. id .. "&w=420&h=420"
+	end
+	return str
+end
+
 -- Tab buttons — centered in topbar with icons and image placeholders
-local function makeTabButton(text, icon, xOffset, isActive)
+local function makeTabButton(text, icon, xOffset, isActive, bgImageId)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0, 100, 0, 36)
 	btn.Position = UDim2.new(0.5, xOffset, 0.5, -18)
@@ -587,7 +597,7 @@ local function makeTabButton(text, icon, xOffset, isActive)
 	bgImage.Name = "TabImage"
 	bgImage.Size = UDim2.new(1, 0, 1, 0)
 	bgImage.BackgroundTransparency = 1
-	bgImage.Image = "" -- User will set their own asset ID
+	bgImage.Image = formatImageId(bgImageId)
 	bgImage.ImageTransparency = isActive and 0.7 or 0.9
 	bgImage.ZIndex = 55
 	bgImage.ScaleType = Enum.ScaleType.Crop
@@ -1006,9 +1016,22 @@ local function createSection(title, keybindText, order, parent, tbl, enabledKey)
 	-- Expand/collapse
 	header.MouseButton1Click:Connect(function()
 		isExpanded = not isExpanded
+		section:SetAttribute("IsExpanded", isExpanded)
 		local targetH = isExpanded and (38 + settingsLayout.AbsoluteContentSize.Y + 10) or 36
 		arrow.Text = isExpanded and "▲" or "▼"
-		TweenService:Create(section, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, targetH)}):Play()
+		if not isExpanded then
+			section.ClipsDescendants = true
+		end
+		local tween = TweenService:Create(section, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, targetH)})
+		tween:Play()
+		if isExpanded then
+			task.spawn(function()
+				tween.Completed:Wait()
+				if section:GetAttribute("IsExpanded") == true then
+					section.ClipsDescendants = false
+				end
+			end)
+		end
 		TweenService:Create(arrow, TweenInfo.new(0.15), {TextColor3 = isExpanded and Color3.fromRGB(200,200,200) or Color3.fromRGB(100,100,100)}):Play()
 	end)
 
@@ -1016,7 +1039,7 @@ local function createSection(title, keybindText, order, parent, tbl, enabledKey)
 end
 
 -- Simple switch (for inside sections)
-local function createSwitch(text, order, parent, tbl, key)
+local function createSwitch(text, order, parent, tbl, key, callback)
 	local isOn = tbl and tbl[key] or false
 	local c = Instance.new("Frame"); c.LayoutOrder = order; c.Size = UDim2.new(1, 0, 0, 22); c.BackgroundTransparency = 1; c.ZIndex = 10; c.Parent = parent
 	local lb = Instance.new("TextLabel"); lb.BackgroundTransparency = 1; lb.Size = UDim2.new(1, -40, 1, 0)
@@ -1035,6 +1058,7 @@ local function createSwitch(text, order, parent, tbl, key)
 		TweenService:Create(kn, TweenInfo.new(0.18), {Position = isOn and UDim2.new(1, -12, 0.5, -5) or UDim2.new(0, 2, 0.5, -5), BackgroundColor3 = isOn and Color3.fromRGB(255,255,255) or Color3.fromRGB(140,140,140)}):Play()
 		TweenService:Create(bg, TweenInfo.new(0.18), {BackgroundColor3 = isOn and Color3.fromRGB(60,60,60) or Color3.fromRGB(25,25,25)}):Play()
 		TweenService:Create(ss, TweenInfo.new(0.18), {Color = isOn and Color3.fromRGB(200,200,200) or Color3.fromRGB(80,80,80)}):Play()
+		if callback then callback(isOn) end
 	end)
 end
 
@@ -1089,6 +1113,7 @@ local function createDropdown(text, order, parent, options, tbl, key)
 	local selected = tbl and tbl[key] or options[1]
 	local expanded = false
 	local c = Instance.new("Frame"); c.LayoutOrder = order; c.Size = UDim2.new(1, 0, 0, 30); c.BackgroundTransparency = 1; c.ClipsDescendants = false; c.ZIndex = 15; c.Parent = parent
+	c:SetAttribute("Expanded", false)
 
 	local db = Instance.new("TextButton"); db.Size = UDim2.new(1, 0, 0, 28)
 	db.BackgroundColor3 = Color3.fromRGB(15,15,18); db.Text = ""; db.AutoButtonColor = false; db.ZIndex = 16; db.Parent = c
@@ -1109,10 +1134,41 @@ local function createDropdown(text, order, parent, options, tbl, key)
 	local dl = Instance.new("Frame"); dl.Size = UDim2.new(1, 0, 0, 0)
 	dl.Position = UDim2.new(0, 0, 0, 32); dl.BackgroundColor3 = Color3.fromRGB(12,12,14)
 	dl.BorderSizePixel = 0; dl.Visible = false; dl.ClipsDescendants = true; dl.ZIndex = 100; dl.Parent = c
+	dl.Name = "DropdownList"
 	Instance.new("UICorner", dl).CornerRadius = UDim.new(0, 6)
 	Instance.new("UIStroke", dl).Color = Color3.fromRGB(55,55,60)
 	local dlLayout = Instance.new("UIListLayout"); dlLayout.Padding = UDim.new(0, 2); dlLayout.SortOrder = Enum.SortOrder.LayoutOrder; dlLayout.Parent = dl
 	local dlPad = Instance.new("UIPadding"); dlPad.PaddingTop = UDim.new(0, 3); dlPad.PaddingLeft = UDim.new(0, 3); dlPad.PaddingRight = UDim.new(0, 3); dlPad.Parent = dl
+
+	local function collapse()
+		expanded = false; arrowLbl.Text = "▼"
+		c:SetAttribute("Expanded", false)
+		TweenService:Create(dl, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Size = UDim2.new(1, 0, 0, 0)}):Play()
+		TweenService:Create(ds, TweenInfo.new(0.12), {Color = Color3.fromRGB(55,55,60)}):Play()
+		c.Size = UDim2.new(1, 0, 0, 30)
+
+		local sectionFrame = nil
+		if parent:IsA("Frame") and parent.Name == "Settings" and parent.Parent and parent.Parent:IsA("Frame") then
+			sectionFrame = parent.Parent
+		end
+		if sectionFrame then
+			local anyExpanded = false
+			for _, child in ipairs(parent:GetChildren()) do
+				if child:GetAttribute("Expanded") == true then
+					anyExpanded = true
+					break
+				end
+			end
+			if not anyExpanded then
+				sectionFrame.ZIndex = 10
+			end
+		end
+
+		task.delay(0.12, function()
+			dl.Visible = false
+			c.ZIndex = 15
+		end)
+	end
 
 	for i, opt in ipairs(options) do
 		local ob = Instance.new("TextButton"); ob.LayoutOrder = i; ob.Size = UDim2.new(1, 0, 0, 24)
@@ -1123,11 +1179,7 @@ local function createDropdown(text, order, parent, options, tbl, key)
 		ob.MouseLeave:Connect(function() TweenService:Create(ob, TweenInfo.new(0.08), {BackgroundColor3 = Color3.fromRGB(20,20,22), TextColor3 = Color3.fromRGB(190,190,195)}):Play() end)
 		ob.MouseButton1Click:Connect(function()
 			selected = opt; if tbl then tbl[key] = opt end; dbLabel.Text = text..":  "..opt
-			expanded = false; arrowLbl.Text = "▼"
-			TweenService:Create(dl, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Size = UDim2.new(1, 0, 0, 0)}):Play()
-			TweenService:Create(ds, TweenInfo.new(0.12), {Color = Color3.fromRGB(55,55,60)}):Play()
-			task.delay(0.12, function() dl.Visible = false end)
-			c.Size = UDim2.new(1, 0, 0, 30)
+			collapse()
 		end)
 	end
 
@@ -1136,16 +1188,21 @@ local function createDropdown(text, order, parent, options, tbl, key)
 	db.MouseButton1Click:Connect(function()
 		expanded = not expanded
 		if expanded then
+			c:SetAttribute("Expanded", true)
+			c.ZIndex = 50
+			local sectionFrame = nil
+			if parent:IsA("Frame") and parent.Name == "Settings" and parent.Parent and parent.Parent:IsA("Frame") then
+				sectionFrame = parent.Parent
+			end
+			if sectionFrame then
+				sectionFrame.ZIndex = 30
+			end
 			dl.Visible = true; dl.Size = UDim2.new(1, 0, 0, 0); arrowLbl.Text = "▲"
 			TweenService:Create(dl, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, #options * 26 + 8)}):Play()
 			TweenService:Create(ds, TweenInfo.new(0.1), {Color = Color3.fromRGB(160,160,165)}):Play()
 			c.Size = UDim2.new(1, 0, 0, 30 + #options * 26 + 12)
 		else
-			arrowLbl.Text = "▼"
-			TweenService:Create(dl, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Size = UDim2.new(1, 0, 0, 0)}):Play()
-			TweenService:Create(ds, TweenInfo.new(0.1), {Color = Color3.fromRGB(55,55,60)}):Play()
-			task.delay(0.12, function() dl.Visible = false end)
-			c.Size = UDim2.new(1, 0, 0, 30)
+			collapse()
 		end
 	end)
 end
@@ -1402,7 +1459,7 @@ end
 local ao = 0; local function an() ao = ao + 1; return ao end
 
 -- Global settings
-createDivider("Global", an(), aimTab)
+createDivider("All Heil Antipathy Aim", an(), aimTab)
 createDropdown("Lock-on Mode", an(), aimTab, {"ClosestToCursor", "Nearest", "LowestHP"}, Settings, "LockOnMode")
 createSlider("Max Distance", an(), aimTab, 100, 5000, Settings, "MaxDistance")
 createExclusionManager(an(), aimTab)
@@ -1447,8 +1504,8 @@ local af = Instance.new("Frame"); af.LayoutOrder = an(); af.BackgroundTransparen
 local vo = 0; local function vn() vo = vo + 1; return vo end
 
 -- Global ESP switch
-createDivider("Global", vn(), visTab)
-createSwitch("Global ESP (Master Toggle)", vn(), visTab, Settings.Visuals, "GlobalESP")
+createDivider("All Heil Antipathy Visuals", vn(), visTab)
+createSwitch("ESP Switch", vn(), visTab, Settings.Visuals, "GlobalESP")
 
 -- Box ESP section
 local boxESPSettings, boxESPSection = createSection("Box ESP", nil, vn(), visTab, Settings.Visuals.BoxESP, "Enabled")
@@ -1515,81 +1572,139 @@ local vf = Instance.new("Frame"); vf.LayoutOrder = vn(); vf.BackgroundTransparen
 -- ═══════════════════════════════════════════════════════════════
 -- AVATAR PREVIEW WINDOW (toggleable, separate, 2D simplified)
 -- ═══════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════
+-- AVATAR PREVIEW CARD (inline in visuals tab, 2D simplified)
+-- ═══════════════════════════════════════════════════════════════
 local avatarWindow = Instance.new("Frame")
 avatarWindow.Name = "AvatarPreview"
-avatarWindow.Size = UDim2.new(0, 160, 0, 260)
-avatarWindow.Position = UDim2.new(0, -170, 0.5, -130)
-avatarWindow.BackgroundColor3 = Color3.fromRGB(5, 5, 5)
+avatarWindow.Size = UDim2.new(1, 0, 0, 160)
+avatarWindow.BackgroundColor3 = Color3.fromRGB(8, 8, 8)
+avatarWindow.BackgroundTransparency = 0.5
 avatarWindow.BorderSizePixel = 0
-avatarWindow.ZIndex = 40
-avatarWindow.Visible = false
-avatarWindow.Parent = frame
+avatarWindow.ZIndex = 10
+avatarWindow.Visible = Settings.Visuals.AvatarPreview or false
 
 Instance.new("UICorner", avatarWindow).CornerRadius = UDim.new(0, 10)
-local avStroke = Instance.new("UIStroke"); avStroke.Color = Color3.fromRGB(60,60,60); avStroke.Thickness = 1; avStroke.Parent = avatarWindow
+local avStroke = Instance.new("UIStroke")
+avStroke.Color = Color3.fromRGB(50, 50, 50)
+avStroke.Thickness = 1
+avStroke.Parent = avatarWindow
 
 local avTitle = Instance.new("TextLabel")
-avTitle.Size = UDim2.new(1, 0, 0, 24); avTitle.BackgroundTransparency = 1
-avTitle.Text = "  Preview"; avTitle.TextColor3 = Color3.fromRGB(180,180,180)
-avTitle.Font = Enum.Font.GothamBold; avTitle.TextSize = 12
-avTitle.TextXAlignment = Enum.TextXAlignment.Left; avTitle.ZIndex = 41; avTitle.Parent = avatarWindow
+avTitle.Size = UDim2.new(1, 0, 0, 24)
+avTitle.Position = UDim2.new(0, 8, 0, 4)
+avTitle.BackgroundTransparency = 1
+avTitle.Text = "Preview"
+avTitle.TextColor3 = Color3.fromRGB(180, 180, 180)
+avTitle.Font = Enum.Font.GothamBold
+avTitle.TextSize = 12
+avTitle.TextXAlignment = Enum.TextXAlignment.Left
+avTitle.ZIndex = 11
+avTitle.Parent = avatarWindow
+
+-- Fixed-size preview container to center elements
+local previewContainer = Instance.new("Frame")
+previewContainer.Name = "PreviewContainer"
+previewContainer.Size = UDim2.new(0, 160, 1, 0)
+previewContainer.Position = UDim2.new(0.5, -80, 0, 0)
+previewContainer.BackgroundTransparency = 1
+previewContainer.ZIndex = 40
+previewContainer.Parent = avatarWindow
 
 -- Simplified 2D character silhouette
 local silhouette = Instance.new("Frame")
 silhouette.Size = UDim2.new(0, 40, 0, 80)
-silhouette.Position = UDim2.new(0.5, -20, 0, 50)
-silhouette.BackgroundTransparency = 1; silhouette.ZIndex = 41; silhouette.Parent = avatarWindow
+silhouette.Position = UDim2.new(0.5, -20, 0, 45)
+silhouette.BackgroundTransparency = 1
+silhouette.ZIndex = 41
+silhouette.Parent = previewContainer
 
 -- Head
 local avHead = Instance.new("Frame")
-avHead.Size = UDim2.new(0, 16, 0, 16); avHead.Position = UDim2.new(0.5, -8, 0, 0)
-avHead.BackgroundColor3 = Color3.fromRGB(80,80,80); avHead.ZIndex = 42; avHead.Parent = silhouette
+avHead.Size = UDim2.new(0, 16, 0, 16)
+avHead.Position = UDim2.new(0.5, -8, 0, 0)
+avHead.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+avHead.ZIndex = 42
+avHead.Parent = silhouette
 Instance.new("UICorner", avHead).CornerRadius = UDim.new(0, 3)
+
 -- Torso
 local avTorso = Instance.new("Frame")
-avTorso.Size = UDim2.new(0, 20, 0, 24); avTorso.Position = UDim2.new(0.5, -10, 0, 18)
-avTorso.BackgroundColor3 = Color3.fromRGB(70,70,70); avTorso.ZIndex = 42; avTorso.Parent = silhouette
+avTorso.Size = UDim2.new(0, 20, 0, 24)
+avTorso.Position = UDim2.new(0.5, -10, 0, 18)
+avTorso.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+avTorso.ZIndex = 42
+avTorso.Parent = silhouette
 Instance.new("UICorner", avTorso).CornerRadius = UDim.new(0, 2)
+
 -- Left arm
 local avLArm = Instance.new("Frame")
-avLArm.Size = UDim2.new(0, 8, 0, 22); avLArm.Position = UDim2.new(0.5, -19, 0, 18)
-avLArm.BackgroundColor3 = Color3.fromRGB(65,65,65); avLArm.ZIndex = 42; avLArm.Parent = silhouette
+avLArm.Size = UDim2.new(0, 8, 0, 22)
+avLArm.Position = UDim2.new(0.5, -19, 0, 18)
+avLArm.BackgroundColor3 = Color3.fromRGB(65, 65, 65)
+avLArm.ZIndex = 42
+avLArm.Parent = silhouette
 Instance.new("UICorner", avLArm).CornerRadius = UDim.new(0, 2)
+
 -- Right arm
 local avRArm = Instance.new("Frame")
-avRArm.Size = UDim2.new(0, 8, 0, 22); avRArm.Position = UDim2.new(0.5, 11, 0, 18)
-avRArm.BackgroundColor3 = Color3.fromRGB(65,65,65); avRArm.ZIndex = 42; avRArm.Parent = silhouette
+avRArm.Size = UDim2.new(0, 8, 0, 22)
+avRArm.Position = UDim2.new(0.5, 11, 0, 18)
+avRArm.BackgroundColor3 = Color3.fromRGB(65, 65, 65)
+avRArm.ZIndex = 42
+avRArm.Parent = silhouette
 Instance.new("UICorner", avRArm).CornerRadius = UDim.new(0, 2)
+
 -- Left leg
 local avLLeg = Instance.new("Frame")
-avLLeg.Size = UDim2.new(0, 9, 0, 24); avLLeg.Position = UDim2.new(0.5, -10, 0, 44)
-avLLeg.BackgroundColor3 = Color3.fromRGB(60,60,60); avLLeg.ZIndex = 42; avLLeg.Parent = silhouette
+avLLeg.Size = UDim2.new(0, 9, 0, 24)
+avLLeg.Position = UDim2.new(0.5, -10, 0, 44)
+avLLeg.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+avLLeg.ZIndex = 42
+avLLeg.Parent = silhouette
 Instance.new("UICorner", avLLeg).CornerRadius = UDim.new(0, 2)
+
 -- Right leg
 local avRLeg = Instance.new("Frame")
-avRLeg.Size = UDim2.new(0, 9, 0, 24); avRLeg.Position = UDim2.new(0.5, 1, 0, 44)
-avRLeg.BackgroundColor3 = Color3.fromRGB(60,60,60); avRLeg.ZIndex = 42; avRLeg.Parent = silhouette
+avRLeg.Size = UDim2.new(0, 9, 0, 24)
+avRLeg.Position = UDim2.new(0.5, 1, 0, 44)
+avRLeg.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+avRLeg.ZIndex = 42
+avRLeg.Parent = silhouette
 Instance.new("UICorner", avRLeg).CornerRadius = UDim.new(0, 2)
 
 -- ESP preview elements around silhouette
 local avBoxCorners = {}
 for i = 1, 8 do
 	local l = Instance.new("Frame")
-	l.BackgroundColor3 = Color3.fromRGB(255,255,255); l.BorderSizePixel = 0; l.ZIndex = 43
-	l.Visible = false; l.Parent = avatarWindow
+	l.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	l.BorderSizePixel = 0
+	l.ZIndex = 43
+	l.Visible = false
+	l.Parent = previewContainer
 	table.insert(avBoxCorners, l)
 end
 
 local avNameLabel = Instance.new("TextLabel")
-avNameLabel.Size = UDim2.new(1, 0, 0, 14); avNameLabel.Position = UDim2.new(0, 0, 0, 34)
-avNameLabel.BackgroundTransparency = 1; avNameLabel.Text = "Player"
-avNameLabel.TextColor3 = Color3.fromRGB(255,255,255); avNameLabel.Font = Enum.Font.GothamMedium
-avNameLabel.TextSize = 11; avNameLabel.ZIndex = 43; avNameLabel.Visible = false; avNameLabel.Parent = avatarWindow
+avNameLabel.Size = UDim2.new(1, 0, 0, 14)
+avNameLabel.Position = UDim2.new(0, 0, 0, 26)
+avNameLabel.BackgroundTransparency = 1
+avNameLabel.Text = "Player"
+avNameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+avNameLabel.Font = Enum.Font.GothamMedium
+avNameLabel.TextSize = 11
+avNameLabel.ZIndex = 43
+avNameLabel.Visible = false
+avNameLabel.Parent = previewContainer
 
 local avHealthBar = Instance.new("Frame")
-avHealthBar.Size = UDim2.new(0, 3, 0, 60); avHealthBar.Position = UDim2.new(0.5, -32, 0, 55)
-avHealthBar.BackgroundColor3 = Color3.fromRGB(0,200,0); avHealthBar.BorderSizePixel = 0
-avHealthBar.ZIndex = 43; avHealthBar.Visible = false; avHealthBar.Parent = avatarWindow
+avHealthBar.Size = UDim2.new(0, 3, 0, 60)
+avHealthBar.Position = UDim2.new(0.5, -32, 0, 50)
+avHealthBar.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+avHealthBar.BorderSizePixel = 0
+avHealthBar.ZIndex = 43
+avHealthBar.Visible = false
+avHealthBar.Parent = previewContainer
 Instance.new("UICorner", avHealthBar).CornerRadius = UDim.new(0, 1)
 
 -- Update avatar preview based on settings
@@ -1600,25 +1715,27 @@ task.spawn(function()
 			-- Box ESP preview
 			local showBox = vs.BoxESP.Enabled and vs.GlobalESP
 			if showBox then
-				local tl = Vector2.new(48, 48)
-				local tr = Vector2.new(112, 48)
-				local bl = Vector2.new(48, 138)
-				local br = Vector2.new(112, 138)
+				local tl = Vector2.new(48, 43)
+				local tr = Vector2.new(112, 43)
+				local bl = Vector2.new(48, 133)
+				local br = Vector2.new(112, 133)
 				local cLen = 12
 				local pts = {
-					{UDim2.new(0,tl.X,0,tl.Y), UDim2.new(0,cLen,0,1)},
-					{UDim2.new(0,tl.X,0,tl.Y), UDim2.new(0,1,0,cLen)},
-					{UDim2.new(0,tr.X-cLen,0,tr.Y), UDim2.new(0,cLen,0,1)},
-					{UDim2.new(0,tr.X-1,0,tr.Y), UDim2.new(0,1,0,cLen)},
-					{UDim2.new(0,bl.X,0,bl.Y-1), UDim2.new(0,cLen,0,1)},
-					{UDim2.new(0,bl.X,0,bl.Y-cLen), UDim2.new(0,1,0,cLen)},
-					{UDim2.new(0,br.X-cLen,0,br.Y-1), UDim2.new(0,cLen,0,1)},
-					{UDim2.new(0,br.X-1,0,br.Y-cLen), UDim2.new(0,1,0,cLen)},
+					{UDim2.new(0, tl.X, 0, tl.Y), UDim2.new(0, cLen, 0, 1)},
+					{UDim2.new(0, tl.X, 0, tl.Y), UDim2.new(0, 1, 0, cLen)},
+					{UDim2.new(0, tr.X - cLen, 0, tr.Y), UDim2.new(0, cLen, 0, 1)},
+					{UDim2.new(0, tr.X - 1, 0, tr.Y), UDim2.new(0, 1, 0, cLen)},
+					{UDim2.new(0, bl.X, 0, bl.Y - 1), UDim2.new(0, cLen, 0, 1)},
+					{UDim2.new(0, bl.X, 0, bl.Y - cLen), UDim2.new(0, 1, 0, cLen)},
+					{UDim2.new(0, br.X - cLen, 0, br.Y - 1), UDim2.new(0, cLen, 0, 1)},
+					{UDim2.new(0, br.X - 1, 0, br.Y - cLen), UDim2.new(0, 1, 0, cLen)},
 				}
 				local col = hexToColor3(vs.BoxESP.Color)
 				for i, p in ipairs(pts) do
-					avBoxCorners[i].Position = p[1]; avBoxCorners[i].Size = p[2]
-					avBoxCorners[i].BackgroundColor3 = col; avBoxCorners[i].Visible = true
+					avBoxCorners[i].Position = p[1]
+					avBoxCorners[i].Size = p[2]
+					avBoxCorners[i].BackgroundColor3 = col
+					avBoxCorners[i].Visible = true
 				end
 			else
 				for _, l in ipairs(avBoxCorners) do l.Visible = false end
@@ -1638,27 +1755,24 @@ task.spawn(function()
 				avLArm.BackgroundColor3 = col; avRArm.BackgroundColor3 = col
 				avLLeg.BackgroundColor3 = col; avRLeg.BackgroundColor3 = col
 			else
-				avHead.BackgroundColor3 = Color3.fromRGB(80,80,80)
-				avTorso.BackgroundColor3 = Color3.fromRGB(70,70,70)
-				avLArm.BackgroundColor3 = Color3.fromRGB(65,65,65); avRArm.BackgroundColor3 = Color3.fromRGB(65,65,65)
-				avLLeg.BackgroundColor3 = Color3.fromRGB(60,60,60); avRLeg.BackgroundColor3 = Color3.fromRGB(60,60,60)
+				avHead.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+				avTorso.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+				avLArm.BackgroundColor3 = Color3.fromRGB(65, 65, 65); avRArm.BackgroundColor3 = Color3.fromRGB(65, 65, 65)
+				avLLeg.BackgroundColor3 = Color3.fromRGB(60, 60, 60); avRLeg.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 			end
 		end
 		task.wait(0.2)
 	end
 end)
 
--- Toggle avatar preview from a button in the visuals tab
-local avToggle = Instance.new("TextButton")
-avToggle.LayoutOrder = vn(); avToggle.Size = UDim2.new(1, 0, 0, 26)
-avToggle.BackgroundColor3 = Color3.fromRGB(15,15,18); avToggle.Text = "   👁 Toggle Avatar Preview"
-avToggle.TextColor3 = Color3.fromRGB(180,180,180); avToggle.Font = Enum.Font.GothamBold; avToggle.TextSize = 12
-avToggle.AutoButtonColor = false; avToggle.TextXAlignment = Enum.TextXAlignment.Left; avToggle.ZIndex = 11; avToggle.Parent = visTab
-Instance.new("UICorner", avToggle).CornerRadius = UDim.new(0, 6)
-local avts = Instance.new("UIStroke"); avts.Color = Color3.fromRGB(55,55,55); avts.Thickness = 1; avts.Parent = avToggle
-avToggle.MouseButton1Click:Connect(function() avatarWindow.Visible = not avatarWindow.Visible end)
-avToggle.MouseEnter:Connect(function() TweenService:Create(avToggle, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(30,30,33)}):Play() end)
-avToggle.MouseLeave:Connect(function() TweenService:Create(avToggle, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(15,15,18)}):Play() end)
+-- Toggle avatar preview from a switch in the visuals tab
+createSwitch("Avatar Preview", vn(), visTab, Settings.Visuals, "AvatarPreview", function(isOn)
+	avatarWindow.Visible = isOn
+end)
+
+avatarWindow.LayoutOrder = vn()
+avatarWindow.Parent = visTab
+
 
 -- ═══════════════════════════════════════════════════════════════
 -- TAB SWITCHING
