@@ -1403,30 +1403,4 @@ RunService.RenderStepped:Connect(function()
 	elseif not dragging then targetPos = nil; exactX = nil; exactY = nil end
 end)
 
--- ═══════════════════════════════════════════════════════════════
--- LOAD FUNCTIONS (separate file)
--- ═══════════════════════════════════════════════════════════════
-task.spawn(function()
-	local success, Functions = pcall(function()
-		-- Try local loadfile first, then fallback
-		-- You can replace this path with your GitHub raw URL:
-		-- return loadstring(game:HttpGet("https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main/AntipathyFunctions.lua"))()
-		if loadfile then
-			return loadfile("AntipathyFunctions.lua")()
-		end
-		return nil
-	end)
-
-	if success and Functions then
-		Functions.init(Settings)
-
-		-- Cleanup on GUI destroy
-		screenGui.Destroying:Connect(function()
-			Functions.cleanup()
-		end)
-	else
-		warn("[Antipathy] Functions file not loaded — UI-only mode. Place AntipathyFunctions.lua alongside or use GitHub URL.")
-	end
-end)
-
 return Settings
