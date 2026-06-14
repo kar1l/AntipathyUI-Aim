@@ -411,7 +411,7 @@ task.spawn(function()
 end)
 
 local bdx, bdy = 1, 1
-local bspeed = 0.1
+local bspeed = 0.25
 local bfx, bfy = 0, 0
 local blt = 0
 task.spawn(function()
@@ -570,7 +570,6 @@ local closeBtn = makeTopButton("x", FRAME_W - 37, 15, {
 	stroke = Color3.fromRGB(120,120,120)
 })
 
--- Tab buttons — centered in topbar with icons and image placeholders
 local function makeTabButton(text, icon, xOffset, isActive, bgImageId)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0, 100, 0, 36)
@@ -583,42 +582,40 @@ local function makeTabButton(text, icon, xOffset, isActive, bgImageId)
 	btn.Parent = topbar
 	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
 
-	-- Background image placeholder (user sets their own asset IDs)
 	local bgImage = Instance.new("ImageLabel")
 	bgImage.Name = "TabImage"
 	bgImage.Size = UDim2.new(1, 0, 1, 0)
+	bgImage.Position = UDim2.new(0, 0, 0, 0)
 	bgImage.BackgroundTransparency = 1
 	bgImage.Image = bgImageId
-	bgImage.ImageTransparency = isActive and 0.7 or 0.9
-	bgImage.ZIndex = 55
-	bgImage.ScaleType = Enum.ScaleType.Crop
+	bgImage.ImageTransparency = isActive and 0 or 0.1
+	bgImage.ZIndex = 56
+	bgImage.ScaleType = Enum.ScaleType.Fit
 	bgImage.Parent = btn
 	Instance.new("UICorner", bgImage).CornerRadius = UDim.new(0, 8)
 
-	-- Icon
 	local iconLabel = Instance.new("TextLabel")
 	iconLabel.Name = "Icon"
-	iconLabel.Size = UDim2.new(1, 0, 0, 16)
-	iconLabel.Position = UDim2.new(0, 0, 0, 3)
+	iconLabel.Size = UDim2.new(1, 0, 0, 14)
+	iconLabel.Position = UDim2.new(0, 0, 0, 2)
 	iconLabel.BackgroundTransparency = 1
 	iconLabel.Font = Enum.Font.SourceSansBold
-	iconLabel.TextSize = 14
+	iconLabel.TextSize = 13
 	iconLabel.Text = icon
 	iconLabel.TextColor3 = isActive and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(100, 100, 100)
-	iconLabel.ZIndex = 56
+	iconLabel.ZIndex = 57
 	iconLabel.Parent = btn
 
-	-- Text (lower in the button)
 	local textLabel = Instance.new("TextLabel")
 	textLabel.Name = "Label"
-	textLabel.Size = UDim2.new(1, 0, 0, 18)
-	textLabel.Position = UDim2.new(0, 0, 0, 16)
+	textLabel.Size = UDim2.new(1, 0, 0, 14)
+	textLabel.Position = UDim2.new(0, 0, 1, -16)
 	textLabel.BackgroundTransparency = 1
 	textLabel.Font = Enum.Font.GothamBold
-	textLabel.TextSize = 16
+	textLabel.TextSize = 13
 	textLabel.Text = text
 	textLabel.TextColor3 = isActive and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(100, 100, 100)
-	textLabel.ZIndex = 56
+	textLabel.ZIndex = 57
 	textLabel.Parent = btn
 
 	local ts = Instance.new("UIStroke")
@@ -666,8 +663,8 @@ local function makeTabButton(text, icon, xOffset, isActive, bgImageId)
 	return btn, line, ts
 end
 
-local aimTabBtn, aimTabLine, aimTabStroke = makeTabButton("Aim", "⊕", -56, true, "rbxassetid://139845607508751")
-local visTabBtn, visTabLine, visTabStroke = makeTabButton("Visuals", "◎", 56, false, "rbxassetid://82529889640951")
+local aimTabBtn, aimTabLine, aimTabStroke = makeTabButton("Aim", "", -56, true, "rbxassetid://107427039527660")
+local visTabBtn, visTabLine, visTabStroke = makeTabButton("Visuals", "", 56, false, "rbxassetid://118751745086662")
 
 -- Minimize button glitch
 task.spawn(function()
@@ -1576,17 +1573,17 @@ createDropdown("Origin", ten(), tracerESPSettings, {"Bottom", "Center", "Top", "
 createSlider("Thickness", ten(), tracerESPSettings, 1, 5, Settings.Visuals.Tracers, "Thickness")
 createHexColor("Color", ten(), tracerESPSettings, Settings.Visuals.Tracers, "Color")
 
-local vf = Instance.new("Frame"); vf.LayoutOrder = vn(); vf.BackgroundTransparency = 1; vf.Size = UDim2.new(1,0,0,8); vf.Parent = visTab
+
 
 -- ═══════════════════════════════════════════════════════════════
 -- COLLAPSIBLE AVATAR PREVIEW SECTION (inline in visuals tab)
 -- ═══════════════════════════════════════════════════════════════
-local previewSettings, previewSection = createSection("Avatar Preview", nil, vn(), visTab, Settings.Visuals, "AvatarPreview")
+local previewSettings, previewSection = createSection("Settings Preview", nil, vn(), visTab, Settings.Visuals, "AvatarPreview")
 
 local previewContainer = Instance.new("Frame")
 previewContainer.Name = "PreviewContainer"
 previewContainer.Size = UDim2.new(1, -16, 0, 140)
-previewContainer.Position = UDim2.new(0, 8, 0, 4)
+previewContainer.Position = UDim2.new(0, 4, 0, 4)
 previewContainer.BackgroundColor3 = Color3.fromRGB(12, 12, 14)
 previewContainer.BackgroundTransparency = 0.4
 previewContainer.BorderSizePixel = 0
@@ -1725,109 +1722,114 @@ local function updatePreviewAvatar(img, lbl)
 		end
 	end
 	if not selectedPlayer then
-		selectedPlayer = LocalPlayer
+		selectedPlayer = LocalPlayer or (playersList and playersList[1])
 	end
 	if selectedPlayer then
 		local userId = selectedPlayer.UserId
 		lbl.Text = selectedPlayer.DisplayName or selectedPlayer.Name
 		img.Image = "rbxthumb://type=Avatar&id=" .. userId .. "&w=180&h=180"
+	else
+		lbl.Text = "Player"
+		img.Image = "rbxthumb://type=Avatar&id=1&w=180&h=180"
 	end
 end
 
 -- Update avatar preview based on settings
 task.spawn(function()
 	local lastState = false
-	while previewSection.Parent do
-		local isExpanded = false
-		if previewSection and previewSection.Parent then
-			isExpanded = previewSection:GetAttribute("IsExpanded") == true
-		end
+	while task.wait(0.25) do
+		local success, err = pcall(function()
+			if not previewSection or not previewSection.Parent then return end
+			local isExpanded = previewSection:GetAttribute("IsExpanded") == true
 
-		if isExpanded then
-			if not lastState then
-				-- Just expanded, get new random avatar!
-				updatePreviewAvatar(avatarImage, avNameLabel)
-			end
-			lastState = true
+			if isExpanded then
+				if not lastState then
+					-- Just expanded, get new random avatar!
+					updatePreviewAvatar(avatarImage, avNameLabel)
+				end
+				lastState = true
 
-			local vs = Settings.Visuals
-			-- Box ESP preview
-			local showBox = vs.BoxESP.Enabled and vs.GlobalESP
-			if showBox then
-				local style = vs.BoxESP.Style
-				local col = hexToColor3(vs.BoxESP.Color)
-				local thickness = vs.BoxESP.Thickness
-				local outlineCol = hexToColor3(vs.BoxESP.OutlineColor)
-				local showOutline = vs.BoxESP.Outline
+				local vs = Settings.Visuals
+				-- Box ESP preview
+				local showBox = vs.BoxESP.Enabled and vs.GlobalESP
+				if showBox then
+					local style = vs.BoxESP.Style
+					local col = hexToColor3(vs.BoxESP.Color)
+					local thickness = vs.BoxESP.Thickness
+					local outlineCol = hexToColor3(vs.BoxESP.OutlineColor)
+					local showOutline = vs.BoxESP.Outline
 
-				if style == "Corners" then
-					boxShapesFrame.Visible = false
-					boxShapesFrameOutline.Visible = false
-					
-					boxCornerFrame.Visible = true
-					boxCornerFrameOutline.Visible = showOutline
-					for _, l in ipairs(lines) do
-						l.BackgroundColor3 = col
-					end
-					for _, l in ipairs(outlineLines) do
-						l.BackgroundColor3 = outlineCol
+					if style == "Corners" then
+						boxShapesFrame.Visible = false
+						boxShapesFrameOutline.Visible = false
+						
+						boxCornerFrame.Visible = true
+						boxCornerFrameOutline.Visible = showOutline
+						for _, l in ipairs(lines) do
+							l.BackgroundColor3 = col
+						end
+						for _, l in ipairs(outlineLines) do
+							l.BackgroundColor3 = outlineCol
+						end
+					else
+						boxCornerFrame.Visible = false
+						boxCornerFrameOutline.Visible = false
+						
+						boxShapesFrame.Visible = true
+						boxShapesFrameOutline.Visible = showOutline
+						
+						boxStroke.Color = col
+						boxStroke.Thickness = thickness
+						boxStrokeOutline.Color = outlineCol
+						boxStrokeOutline.Thickness = thickness + 2
+						
+						boxShapesFrameOutline.Size = UDim2.new(0, 104 + thickness * 2, 0, 104 + thickness * 2)
+						boxShapesFrameOutline.Position = UDim2.new(0.5, -52 - thickness, 0.5, -52 - thickness)
+						
+						if style == "Full" then
+							boxCorner.CornerRadius = UDim.new(0, 0)
+							boxCornerOutline.CornerRadius = UDim.new(0, 0)
+							boxShapesFrame.Rotation = 0
+							boxShapesFrameOutline.Rotation = 0
+						elseif style == "Oval" then
+							boxCorner.CornerRadius = UDim.new(0.5, 0)
+							boxCornerOutline.CornerRadius = UDim.new(0.5, 0)
+							boxShapesFrame.Rotation = 0
+							boxShapesFrameOutline.Rotation = 0
+						elseif style == "Diamond" then
+							boxCorner.CornerRadius = UDim.new(0, 0)
+							boxCornerOutline.CornerRadius = UDim.new(0, 0)
+							boxShapesFrame.Rotation = 45
+							boxShapesFrameOutline.Rotation = 45
+						end
 					end
 				else
 					boxCornerFrame.Visible = false
 					boxCornerFrameOutline.Visible = false
-					
-					boxShapesFrame.Visible = true
-					boxShapesFrameOutline.Visible = showOutline
-					
-					boxStroke.Color = col
-					boxStroke.Thickness = thickness
-					boxStrokeOutline.Color = outlineCol
-					boxStrokeOutline.Thickness = thickness + 2
-					
-					boxShapesFrameOutline.Size = UDim2.new(0, 104 + thickness * 2, 0, 104 + thickness * 2)
-					boxShapesFrameOutline.Position = UDim2.new(0.5, -52 - thickness, 0.5, -52 - thickness)
-					
-					if style == "Full" then
-						boxCorner.CornerRadius = UDim.new(0, 0)
-						boxCornerOutline.CornerRadius = UDim.new(0, 0)
-						boxShapesFrame.Rotation = 0
-						boxShapesFrameOutline.Rotation = 0
-					elseif style == "Oval" then
-						boxCorner.CornerRadius = UDim.new(0.5, 0)
-						boxCornerOutline.CornerRadius = UDim.new(0.5, 0)
-						boxShapesFrame.Rotation = 0
-						boxShapesFrameOutline.Rotation = 0
-					elseif style == "Diamond" then
-						boxCorner.CornerRadius = UDim.new(0, 0)
-						boxCornerOutline.CornerRadius = UDim.new(0, 0)
-						boxShapesFrame.Rotation = 45
-						boxShapesFrameOutline.Rotation = 45
-					end
+					boxShapesFrame.Visible = false
+					boxShapesFrameOutline.Visible = false
+				end
+
+				-- Name preview
+				avNameLabel.Visible = vs.NameESP.Enabled and vs.GlobalESP
+				if avNameLabel.Visible then avNameLabel.TextColor3 = hexToColor3(vs.NameESP.Color) end
+
+				-- Health bar preview
+				avHealthBar.Visible = vs.Health.Enabled and vs.GlobalESP
+
+				-- Chams preview (simulated via ImageColor3 tint)
+				if vs.Chams.Enabled and vs.GlobalESP then
+					avatarImage.ImageColor3 = hexToColor3(vs.Chams.VisibleColor)
+				else
+					avatarImage.ImageColor3 = Color3.fromRGB(255, 255, 255)
 				end
 			else
-				boxCornerFrame.Visible = false
-				boxCornerFrameOutline.Visible = false
-				boxShapesFrame.Visible = false
-				boxShapesFrameOutline.Visible = false
+				lastState = false
 			end
-
-			-- Name preview
-			avNameLabel.Visible = vs.NameESP.Enabled and vs.GlobalESP
-			if avNameLabel.Visible then avNameLabel.TextColor3 = hexToColor3(vs.NameESP.Color) end
-
-			-- Health bar preview
-			avHealthBar.Visible = vs.Health.Enabled and vs.GlobalESP
-
-			-- Chams preview (simulated via ImageColor3 tint)
-			if vs.Chams.Enabled and vs.GlobalESP then
-				avatarImage.ImageColor3 = hexToColor3(vs.Chams.VisibleColor)
-			else
-				avatarImage.ImageColor3 = Color3.fromRGB(255, 255, 255)
-			end
-		else
-			lastState = false
+		end)
+		if not success then
+			warn("Antipathy Preview Task Error: " .. tostring(err))
 		end
-		task.wait(0.25)
 	end
 end)
 
@@ -1881,6 +1883,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
 		for _, ht in ipairs(halftones) do ht.Visible = true end
 		aimTabBtn.Visible = true; visTabBtn.Visible = true
 		subtitle.Visible = true
+		TweenService:Create(title, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 16, 0, 6), Size = UDim2.new(0, 90, 0, 20)}):Play()
 		TweenService:Create(minimizeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, FRAME_W - 70, 0, 15)}):Play()
 		TweenService:Create(closeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, FRAME_W - 37, 0, 15)}):Play()
 		task.spawn(function()
@@ -1894,13 +1897,14 @@ minimizeBtn.MouseButton1Click:Connect(function()
 		for _, ht in ipairs(halftones) do ht.Visible = false end
 		aimTabBtn.Visible = false; visTabBtn.Visible = false
 		subtitle.Visible = false
-		TweenService:Create(minimizeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 125, 0, 15)}):Play()
-		TweenService:Create(closeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 157, 0, 15)}):Play()
+		TweenService:Create(title, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -95, 0, 6), Size = UDim2.new(0, 120, 0, 20)}):Play()
+		TweenService:Create(minimizeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 35, 0, 15)}):Play()
+		TweenService:Create(closeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 67, 0, 15)}):Play()
 		task.spawn(function()
 			local s = deviceScale; local op = frame.Position
 			for _=1,5 do uiScale.Scale = s*(0.7+math.random()*0.3); frame.Position = op + UDim2.new(0, math.random(-15,15), 0, math.random(-15,15)); frame.BackgroundTransparency = math.random()*0.3; task.wait(0.03+math.random()*0.04) end
 			uiScale.Scale = s; frame.Position = op; frame.BackgroundTransparency = 0
-			frame.Size = UDim2.new(0, 200, 0, TOPBAR_H); body.Visible = false
+			frame.Size = UDim2.new(0, 260, 0, TOPBAR_H); body.Visible = false
 		end)
 	end
 end)
