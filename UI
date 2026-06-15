@@ -1,10 +1,10 @@
 --[[
-    Antipathy — Aim & Visuals (v4)
+    Antipathy — Aim, Visuals & Rage (v5)
     UI-only file. All functional logic is in AntipathyFunctions.lua
     Load this from GitHub or locally — it returns the Settings table.
 
-    NEW: Section-based collapsible UI, corner-style borders, animated dropdowns,
-    avatar preview, color picker with rainbow mode, tab icons.
+    NEW: Rage tab, team check, shake/jitter, FOV spin, trail types,
+    avatar-size ESP, keybinds for all features, auto-lock toggle.
 ]]
 
 local Players = game:GetService("Players")
@@ -23,6 +23,7 @@ local Settings = {
 	LockOnMode = "ClosestToCursor",
 
 	Aim = {
+		TeamCheck = false,
 		Aimlock = {
 			Enabled = false,
 			Mode = "Aimlock",
@@ -34,9 +35,13 @@ local Settings = {
 			WallCheck = true,
 			StickyAim = false,
 			AimWhileDead = false,
+			AutoLock = false,
+			Shake = false,
+			ShakeIntensity = 5,
 		},
 		SilentAim = {
 			Enabled = false,
+			Keybind = "...",
 			FOV = 120,
 			ShowFOV = false,
 			FOVSides = 64,
@@ -44,17 +49,26 @@ local Settings = {
 			FOVFilled = false,
 			FOVTransparency = 0.5,
 			FOVColor = "FFFFFF",
+			FOVOutline = false,
+			FOVOutlineColor = "000000",
+			FOVOutlineThickness = 2,
+			FOVSpin = false,
+			FOVSpinSpeed = 1,
+			FOVSpinStyle = "Smooth",
 			TargetPart = "Head",
 			WallCheck = true,
 		},
 		Triggerbot = {
 			Enabled = false,
+			Keybind = "...",
 			Delay = 50,
 			MaxDistance = 500,
 		},
 	},
 	Visuals = {
 		GlobalESP = true,
+		ESPKeybind = "...",
+		TeamCheck = false,
 		BoxESP = {
 			Enabled = false,
 			Style = "Corners",
@@ -76,6 +90,7 @@ local Settings = {
 		},
 		Trail = {
 			Enabled = false,
+			Type = "Normal",
 			Lifetime = 1,
 			Color = "FFFFFF",
 			Transparency = 0.3,
@@ -109,6 +124,46 @@ local Settings = {
 			Color = "FFFFFF",
 		},
 		AvatarPreview = false,
+	},
+	Rage = {
+		KillAura = {
+			Enabled = false,
+			Keybind = "...",
+			AutoShoot = true,
+			ShootDelay = 50,
+			WallCheck = true,
+		},
+		Spinbot = {
+			Enabled = false,
+			Keybind = "...",
+			Mode = "Normal",
+			Speed = 10,
+		},
+		HitboxExpander = {
+			Enabled = false,
+			Keybind = "...",
+			Size = 5,
+			Visualize = false,
+			Color = "FF0000",
+			Transparency = 0.7,
+		},
+		Orbital = {
+			Enabled = false,
+			Keybind = "...",
+			Mode = "Circle",
+			Speed = 5,
+			Distance = 15,
+			Height = 0,
+			Spectate = false,
+		},
+		AntiAim = {
+			Enabled = false,
+			Keybind = "...",
+			Mode = "Legit",
+			Range = 180,
+			Speed = 10,
+			Spectate = false,
+		},
 	},
 }
 
@@ -559,7 +614,7 @@ local function makeTopButton(text, posX, posY, colorSet)
 	return btn
 end
 
--- Buttons placed near title (right side of topbar still)
+-- Buttons placed near title (right side of topbar)
 local minimizeBtn = makeTopButton("-", FRAME_W - 70, 15, {base = Color3.fromRGB(0,0,0), hoverBase = Color3.fromRGB(30,30,30), stroke = Color3.fromRGB(100,100,100)})
 minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 
@@ -570,6 +625,9 @@ local closeBtn = makeTopButton("x", FRAME_W - 37, 15, {
 	stroke = Color3.fromRGB(120,120,120)
 })
 
+-- ═══════════════════════════════════════════════════════════════
+-- TAB BUTTONS — 3 tabs: Aim, Visuals, Rage
+-- ═══════════════════════════════════════════════════════════════
 local function makeTabButton(text, icon, xOffset, isActive, bgImageId)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0, 100, 0, 36)
@@ -588,7 +646,7 @@ local function makeTabButton(text, icon, xOffset, isActive, bgImageId)
 	bgImage.Position = UDim2.new(0, 0, 0, 0)
 	bgImage.BackgroundTransparency = 1
 	bgImage.Image = bgImageId
-	bgImage.ImageTransparency = isActive and 0 or 0.1
+	bgImage.ImageTransparency = isActive and 0 or 0.7
 	bgImage.ZIndex = 56
 	bgImage.ScaleType = Enum.ScaleType.Fit
 	bgImage.Parent = btn
@@ -663,8 +721,9 @@ local function makeTabButton(text, icon, xOffset, isActive, bgImageId)
 	return btn, line, ts
 end
 
-local aimTabBtn, aimTabLine, aimTabStroke = makeTabButton("Aim", "", -56, true, "rbxassetid://107427039527660")
-local visTabBtn, visTabLine, visTabStroke = makeTabButton("Visuals", "", 56, false, "rbxassetid://118751745086662")
+local aimTabBtn, aimTabLine, aimTabStroke = makeTabButton("Aim", "", -108, true, "rbxassetid://107427039527660")
+local visTabBtn, visTabLine, visTabStroke = makeTabButton("Visuals", "", 0, false, "rbxassetid://118751745086662")
+local rageTabBtn, rageTabLine, rageTabStroke = makeTabButton("Rage", "", 108, false, "rbxassetid://0")
 
 -- Minimize button glitch
 task.spawn(function()
@@ -672,8 +731,9 @@ task.spawn(function()
 	while minimizeBtn.Parent do
 		if math.random(1, 6) == 1 and ms then
 			ms.Color = Color3.fromRGB(255,255,255); ms.Transparency = 0
-			for _ = 1, math.random(3, 6) do minimizeBtn.Text = math.random(2)==1 and "-" or "_"; minimizeBtn.TextSize = 16; task.wait(0.03 + math.random()*0.04) end
-			ms.Color = Color3.fromRGB(100,100,100); ms.Transparency = 0.2; minimizeBtn.TextSize = 14; minimizeBtn.Text = "-"
+			local minText = minimizeBtn.Text == "+" and "+" or "-"
+			for _ = 1, math.random(3, 6) do minimizeBtn.Text = math.random(2)==1 and minText or "_"; minimizeBtn.TextSize = 16; task.wait(0.03 + math.random()*0.04) end
+			ms.Color = Color3.fromRGB(100,100,100); ms.Transparency = 0.2; minimizeBtn.TextSize = 14; minimizeBtn.Text = minText
 		end
 		task.wait(0.1 + math.random()*0.2)
 	end
@@ -682,6 +742,11 @@ end)
 -- CTRL+A hide
 local isHidden = false
 local isMinimized = false
+
+-- Dragging state (declared before minimize so closures see the same local)
+local dragging = false
+local dragStart, startPos, targetPos, exactX, exactY = nil, nil, nil, nil, nil
+
 UserInputService.InputBegan:Connect(function(input)
 	if input.KeyCode == Enum.KeyCode.A and (UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or UserInputService:IsKeyDown(Enum.KeyCode.RightControl)) then
 		isHidden = not isHidden
@@ -728,6 +793,7 @@ end
 
 local aimTab = createTabScroll("AimTab", true)
 local visTab = createTabScroll("VisualsTab", false)
+local rageTab = createTabScroll("RageTab", false)
 
 -- ═══════════════════════════════════════════════════════════════
 -- HELPERS
@@ -892,7 +958,8 @@ local function addCornerBorder(parent, color, thickness, cornerLen)
 end
 
 -- COLLAPSIBLE SECTION: header with name, keybind, toggle, expand arrow
-local function createSection(title, keybindText, order, parent, tbl, enabledKey)
+-- keybindKey: string key in tbl that holds keybind (e.g. "Keybind"), or nil for no keybind display
+local function createSection(sectionTitle, keybindKey, order, parent, tbl, enabledKey)
 	local isEnabled = tbl and tbl[enabledKey] or false
 	local isExpanded = false
 	local settingsLayout = nil
@@ -925,20 +992,21 @@ local function createSection(title, keybindText, order, parent, tbl, enabledKey)
 	titleLbl.BackgroundTransparency = 1
 	titleLbl.Size = UDim2.new(0, 200, 1, 0)
 	titleLbl.Position = UDim2.new(0, 12, 0, 0)
-	titleLbl.Text = title
+	titleLbl.Text = sectionTitle
 	titleLbl.TextColor3 = isEnabled and Color3.fromRGB(240,240,240) or Color3.fromRGB(140,140,140)
 	titleLbl.Font = Enum.Font.GothamBold
 	titleLbl.TextSize = 14
 	titleLbl.TextXAlignment = Enum.TextXAlignment.Left
 	titleLbl.ZIndex = 12; titleLbl.Parent = header
 
-	-- Keybind display
+	-- Keybind display in header
 	local keybindLbl = nil
-	if keybindText then
+	if keybindKey then
+		local keybindText = tbl and tbl[keybindKey] or "..."
 		keybindLbl = Instance.new("TextLabel")
 		keybindLbl.BackgroundTransparency = 1
-		keybindLbl.Size = UDim2.new(0, 30, 0, 20)
-		keybindLbl.Position = UDim2.new(1, -100, 0.5, -10)
+		keybindLbl.Size = UDim2.new(0, 40, 0, 20)
+		keybindLbl.Position = UDim2.new(1, -110, 0.5, -10)
 		keybindLbl.Text = keybindText
 		keybindLbl.TextColor3 = Color3.fromRGB(100,100,100)
 		keybindLbl.Font = Enum.Font.Code; keybindLbl.TextSize = 12
@@ -983,6 +1051,7 @@ local function createSection(title, keybindText, order, parent, tbl, enabledKey)
 		TweenService:Create(arrow, TweenInfo.new(0.15), {TextColor3 = isExpanded and Color3.fromRGB(200,200,200) or Color3.fromRGB(100,100,100)}):Play()
 	end
 
+	-- FIX: Toggle does NOT auto-expand. User clicks header to expand manually.
 	toggleBg.MouseButton1Click:Connect(function()
 		isEnabled = not isEnabled
 		if tbl then tbl[enabledKey] = isEnabled end
@@ -997,7 +1066,7 @@ local function createSection(title, keybindText, order, parent, tbl, enabledKey)
 		for _, c in ipairs(corners) do
 			TweenService:Create(c, TweenInfo.new(0.18), {BackgroundColor3 = isEnabled and Color3.fromRGB(120,120,120) or Color3.fromRGB(50,50,50)}):Play()
 		end
-		setExpanded(isEnabled)
+		-- Removed: setExpanded(isEnabled) — user opens settings manually
 	end)
 
 	-- Expand arrow
@@ -1031,19 +1100,14 @@ local function createSection(title, keybindText, order, parent, tbl, enabledKey)
 		end
 	end)
 
-	-- Expand/collapse
+	-- Expand/collapse on header click
 	header.MouseButton1Click:Connect(function()
 		setExpanded(not isExpanded)
 	end)
 
-	if isEnabled then
-		task.spawn(function()
-			task.wait(0.1)
-			setExpanded(true)
-		end)
-	end
+	-- No auto-expand on init either (removed)
 
-	return settingsFrame, section
+	return settingsFrame, section, keybindLbl
 end
 
 -- Simple switch (for inside sections)
@@ -1215,27 +1279,42 @@ local function createDropdown(text, order, parent, options, tbl, key)
 	end)
 end
 
-local function createKeybindButton(text, order, parent, tbl, key)
-	local curKey = tbl and tbl[key] or "Q"
+-- Keybind button with mouse button support and optional callback
+local function createKeybindButton(text, order, parent, tbl, key, onChanged)
+	local curKey = tbl and tbl[key] or "..."
 	local listening = false
 	local c = Instance.new("Frame"); c.LayoutOrder = order; c.Size = UDim2.new(1, 0, 0, 22); c.BackgroundTransparency = 1; c.ZIndex = 10; c.Parent = parent
 	local lb = Instance.new("TextLabel"); lb.BackgroundTransparency = 1; lb.Size = UDim2.new(1, -55, 1, 0)
 	lb.Text = text; lb.TextColor3 = Color3.fromRGB(200,200,200); lb.Font = Enum.Font.GothamMedium
 	lb.TextSize = 13; lb.TextXAlignment = Enum.TextXAlignment.Left; lb.ZIndex = 10; lb.Parent = c
+	local displayKey = curKey == "..." and "[...]" or "["..curKey.."]"
 	local kb = Instance.new("TextButton"); kb.Size = UDim2.new(0, 48, 0, 20); kb.Position = UDim2.new(1, -48, 0.5, -10)
-	kb.BackgroundColor3 = Color3.fromRGB(10,10,10); kb.Text = "["..curKey.."]"; kb.Font = Enum.Font.GothamBold
+	kb.BackgroundColor3 = Color3.fromRGB(10,10,10); kb.Text = displayKey; kb.Font = Enum.Font.GothamBold
 	kb.TextSize = 12; kb.TextColor3 = Color3.fromRGB(170,170,170); kb.AutoButtonColor = false; kb.ZIndex = 11; kb.Parent = c
 	Instance.new("UICorner", kb).CornerRadius = UDim.new(0, 5)
 	local kbs = Instance.new("UIStroke"); kbs.Color = Color3.fromRGB(55,55,55); kbs.Thickness = 1; kbs.Parent = kb
 	kb.MouseButton1Click:Connect(function()
 		if listening then return end; listening = true; kb.Text = "[...]"
 		TweenService:Create(kbs, TweenInfo.new(0.12), {Color = Color3.fromRGB(255,255,255)}):Play()
+		-- Small delay to avoid capturing the click that started listening
+		task.wait(0.15)
 		local conn; conn = UserInputService.InputBegan:Connect(function(input)
+			local newKey = nil
 			if input.UserInputType == Enum.UserInputType.Keyboard then
-				curKey = input.KeyCode.Name; if tbl then tbl[key] = curKey end
+				newKey = input.KeyCode.Name
+			elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+				newKey = "MouseButton1"
+			elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
+				newKey = "MouseButton2"
+			elseif input.UserInputType == Enum.UserInputType.MouseButton3 then
+				newKey = "MouseButton3"
+			end
+			if newKey then
+				curKey = newKey; if tbl then tbl[key] = curKey end
 				kb.Text = "["..curKey.."]"
 				TweenService:Create(kbs, TweenInfo.new(0.12), {Color = Color3.fromRGB(55,55,55)}):Play()
 				listening = false; conn:Disconnect()
+				if onChanged then onChanged(curKey) end
 			end
 		end)
 	end)
@@ -1385,7 +1464,6 @@ local function createExclusionManager(order, parent)
 			tag.TextColor3 = Color3.fromRGB(170,170,170)
 			tag.AutoButtonColor = false; tag.ZIndex = 11; tag.LayoutOrder = idx; tag.Parent = tagsFrame
 
-			-- Corner-style border instead of full outline
 			addCornerBorder(tag, Color3.fromRGB(60,60,60), 1, 6)
 
 			tag.MouseEnter:Connect(function()
@@ -1466,28 +1544,40 @@ end
 -- ═══════════════════════════════════════════════════════════════
 local ao = 0; local function an() ao = ao + 1; return ao end
 
+-- Target part options (shared)
+local targetPartOptions = {"Head", "Torso", "HumanoidRootPart", "Left Arm", "Right Arm", "Left Leg", "Right Leg", "Nearest"}
+
 -- Global settings
 createDivider("All Heil Antipathy Aim", an(), aimTab)
 createDropdown("Lock-on Mode", an(), aimTab, {"ClosestToCursor", "Nearest", "LowestHP"}, Settings, "LockOnMode")
 createSlider("Max Distance", an(), aimTab, 100, 5000, Settings, "MaxDistance")
 createExclusionManager(an(), aimTab)
+createSwitch("Team Check", an(), aimTab, Settings.Aim, "TeamCheck")
 
 -- Aimlock section
-local aimlockSettings, aimlockSection = createSection("Aimlock", "Q", an(), aimTab, Settings.Aim.Aimlock, "Enabled")
+local aimlockSettings, aimlockSection, aimlockKeybindLbl = createSection("Aimlock", "Keybind", an(), aimTab, Settings.Aim.Aimlock, "Enabled")
 local aso = 0; local function asn() aso = aso + 1; return aso end
 createDropdown("Mode", asn(), aimlockSettings, {"Aimlock", "Mouselock"}, Settings.Aim.Aimlock, "Mode")
-createKeybindButton("Keybind", asn(), aimlockSettings, Settings.Aim.Aimlock, "Keybind")
+createKeybindButton("Keybind", asn(), aimlockSettings, Settings.Aim.Aimlock, "Keybind", function(newKey)
+	if aimlockKeybindLbl then aimlockKeybindLbl.Text = newKey end
+end)
 createSlider("Smoothness", asn(), aimlockSettings, 0, 50, Settings.Aim.Aimlock, "Smoothness")
-createDropdown("Target Part", asn(), aimlockSettings, {"Head", "Torso", "HumanoidRootPart", "Nearest"}, Settings.Aim.Aimlock, "TargetPart")
+createDropdown("Target Part", asn(), aimlockSettings, targetPartOptions, Settings.Aim.Aimlock, "TargetPart")
 createSwitch("Prediction", asn(), aimlockSettings, Settings.Aim.Aimlock, "Prediction")
 createSlider("Prediction Value", asn(), aimlockSettings, 0, 1, Settings.Aim.Aimlock, "PredictionValue", 0.005)
 createSwitch("Wall Check", asn(), aimlockSettings, Settings.Aim.Aimlock, "WallCheck")
 createSwitch("Sticky Aim", asn(), aimlockSettings, Settings.Aim.Aimlock, "StickyAim")
 createSwitch("Aim While Dead", asn(), aimlockSettings, Settings.Aim.Aimlock, "AimWhileDead")
+createSwitch("Auto Lock", asn(), aimlockSettings, Settings.Aim.Aimlock, "AutoLock")
+createSwitch("Shake", asn(), aimlockSettings, Settings.Aim.Aimlock, "Shake")
+createSlider("Shake Intensity", asn(), aimlockSettings, 1, 30, Settings.Aim.Aimlock, "ShakeIntensity")
 
 -- Silent Aim section
-local silentSettings, silentSection = createSection("Silent Aim", nil, an(), aimTab, Settings.Aim.SilentAim, "Enabled")
+local silentSettings, silentSection, silentKeybindLbl = createSection("Silent Aim", "Keybind", an(), aimTab, Settings.Aim.SilentAim, "Enabled")
 local sso = 0; local function ssn() sso = sso + 1; return sso end
+createKeybindButton("Keybind", ssn(), silentSettings, Settings.Aim.SilentAim, "Keybind", function(newKey)
+	if silentKeybindLbl then silentKeybindLbl.Text = newKey end
+end)
 createSlider("FOV Radius", ssn(), silentSettings, 10, 500, Settings.Aim.SilentAim, "FOV")
 createSwitch("Show FOV Circle", ssn(), silentSettings, Settings.Aim.SilentAim, "ShowFOV")
 createSwitch("FOV Filled", ssn(), silentSettings, Settings.Aim.SilentAim, "FOVFilled")
@@ -1495,12 +1585,21 @@ createSlider("FOV Sides", ssn(), silentSettings, 8, 128, Settings.Aim.SilentAim,
 createSlider("FOV Thickness", ssn(), silentSettings, 1, 5, Settings.Aim.SilentAim, "FOVThickness")
 createSlider("FOV Transparency", ssn(), silentSettings, 0, 1, Settings.Aim.SilentAim, "FOVTransparency", 0.05)
 createHexColor("FOV Color", ssn(), silentSettings, Settings.Aim.SilentAim, "FOVColor")
-createDropdown("Target Part", ssn(), silentSettings, {"Head", "Torso", "HumanoidRootPart", "Nearest"}, Settings.Aim.SilentAim, "TargetPart")
+createSwitch("FOV Outline", ssn(), silentSettings, Settings.Aim.SilentAim, "FOVOutline")
+createHexColor("Outline Color", ssn(), silentSettings, Settings.Aim.SilentAim, "FOVOutlineColor")
+createSlider("Outline Thickness", ssn(), silentSettings, 1, 5, Settings.Aim.SilentAim, "FOVOutlineThickness")
+createSwitch("FOV Spin", ssn(), silentSettings, Settings.Aim.SilentAim, "FOVSpin")
+createSlider("Spin Speed", ssn(), silentSettings, 1, 20, Settings.Aim.SilentAim, "FOVSpinSpeed")
+createDropdown("Spin Style", ssn(), silentSettings, {"Smooth", "Bouncy", "Elastic"}, Settings.Aim.SilentAim, "FOVSpinStyle")
+createDropdown("Target Part", ssn(), silentSettings, targetPartOptions, Settings.Aim.SilentAim, "TargetPart")
 createSwitch("Wall Check", ssn(), silentSettings, Settings.Aim.SilentAim, "WallCheck")
 
 -- Triggerbot section
-local trigSettings, trigSection = createSection("Triggerbot", nil, an(), aimTab, Settings.Aim.Triggerbot, "Enabled")
+local trigSettings, trigSection, trigKeybindLbl = createSection("Triggerbot", "Keybind", an(), aimTab, Settings.Aim.Triggerbot, "Enabled")
 local tso = 0; local function tsn() tso = tso + 1; return tso end
+createKeybindButton("Keybind", tsn(), trigSettings, Settings.Aim.Triggerbot, "Keybind", function(newKey)
+	if trigKeybindLbl then trigKeybindLbl.Text = newKey end
+end)
 createSlider("Delay (ms)", tsn(), trigSettings, 0, 500, Settings.Aim.Triggerbot, "Delay", 5, "ms")
 createSlider("Max Distance", tsn(), trigSettings, 50, 2000, Settings.Aim.Triggerbot, "MaxDistance")
 
@@ -1514,6 +1613,8 @@ local vo = 0; local function vn() vo = vo + 1; return vo end
 -- Global ESP switch
 createDivider("All Heil Antipathy Visuals", vn(), visTab)
 createSwitch("ESP Switch", vn(), visTab, Settings.Visuals, "GlobalESP")
+createKeybindButton("ESP Keybind", vn(), visTab, Settings.Visuals, "ESPKeybind")
+createSwitch("Team Check", vn(), visTab, Settings.Visuals, "TeamCheck")
 
 -- Box ESP section
 local boxESPSettings, boxESPSection = createSection("Box ESP", nil, vn(), visTab, Settings.Visuals.BoxESP, "Enabled")
@@ -1539,6 +1640,7 @@ createDropdown("Depth Mode", chn(), chamsSettings, {"AlwaysOnTop", "Occluded", "
 -- Trail section
 local trailSettings, trailSection = createSection("Trail", nil, vn(), visTab, Settings.Visuals.Trail, "Enabled")
 local tro = 0; local function trn() tro = tro + 1; return tro end
+createDropdown("Type", trn(), trailSettings, {"Normal", "Forcefield", "Bubble"}, Settings.Visuals.Trail, "Type")
 createSlider("Lifetime", trn(), trailSettings, 0, 5, Settings.Visuals.Trail, "Lifetime", 0.1, "s")
 createHexColor("Trail Color", trn(), trailSettings, Settings.Visuals.Trail, "Color")
 createSlider("Transparency", trn(), trailSettings, 0, 1, Settings.Visuals.Trail, "Transparency", 0.05)
@@ -1575,7 +1677,67 @@ createDropdown("Origin", ten(), tracerESPSettings, {"Bottom", "Center", "Top", "
 createSlider("Thickness", ten(), tracerESPSettings, 1, 5, Settings.Visuals.Tracers, "Thickness")
 createHexColor("Color", ten(), tracerESPSettings, Settings.Visuals.Tracers, "Color")
 
+-- ═══════════════════════════════════════════════════════════════
+-- RAGE TAB — Section-based layout
+-- ═══════════════════════════════════════════════════════════════
+local ro = 0; local function rn() ro = ro + 1; return ro end
 
+createDivider("All Heil Antipathy Rage", rn(), rageTab)
+
+-- Kill Aura section
+local killAuraSettings, killAuraSection, killAuraKeybindLbl = createSection("Kill Aura", "Keybind", rn(), rageTab, Settings.Rage.KillAura, "Enabled")
+local kao = 0; local function kan() kao = kao + 1; return kao end
+createKeybindButton("Keybind", kan(), killAuraSettings, Settings.Rage.KillAura, "Keybind", function(newKey)
+	if killAuraKeybindLbl then killAuraKeybindLbl.Text = newKey end
+end)
+createSwitch("Auto Shoot", kan(), killAuraSettings, Settings.Rage.KillAura, "AutoShoot")
+createSlider("Shoot Delay (ms)", kan(), killAuraSettings, 0, 500, Settings.Rage.KillAura, "ShootDelay", 5, "ms")
+createSwitch("Wall Check", kan(), killAuraSettings, Settings.Rage.KillAura, "WallCheck")
+
+-- Spinbot section
+local spinbotSettings, spinbotSection, spinbotKeybindLbl = createSection("Spinbot", "Keybind", rn(), rageTab, Settings.Rage.Spinbot, "Enabled")
+local sbo = 0; local function sbn() sbo = sbo + 1; return sbo end
+createKeybindButton("Keybind", sbn(), spinbotSettings, Settings.Rage.Spinbot, "Keybind", function(newKey)
+	if spinbotKeybindLbl then spinbotKeybindLbl.Text = newKey end
+end)
+createDropdown("Mode", sbn(), spinbotSettings, {"Normal", "Sideways", "Funky"}, Settings.Rage.Spinbot, "Mode")
+createSlider("Speed", sbn(), spinbotSettings, 1, 50, Settings.Rage.Spinbot, "Speed")
+
+-- Hitbox Expander section
+local hitboxSettings, hitboxSection, hitboxKeybindLbl = createSection("Hitbox Expander", "Keybind", rn(), rageTab, Settings.Rage.HitboxExpander, "Enabled")
+local hbo = 0; local function hbn() hbo = hbo + 1; return hbo end
+createKeybindButton("Keybind", hbn(), hitboxSettings, Settings.Rage.HitboxExpander, "Keybind", function(newKey)
+	if hitboxKeybindLbl then hitboxKeybindLbl.Text = newKey end
+end)
+createSlider("Size", hbn(), hitboxSettings, 1, 25, Settings.Rage.HitboxExpander, "Size")
+createSwitch("Visualize", hbn(), hitboxSettings, Settings.Rage.HitboxExpander, "Visualize")
+createHexColor("Color", hbn(), hitboxSettings, Settings.Rage.HitboxExpander, "Color")
+createSlider("Transparency", hbn(), hitboxSettings, 0, 1, Settings.Rage.HitboxExpander, "Transparency", 0.05)
+
+-- Orbital section
+local orbitalSettings, orbitalSection, orbitalKeybindLbl = createSection("Orbital", "Keybind", rn(), rageTab, Settings.Rage.Orbital, "Enabled")
+local obo = 0; local function obn() obo = obo + 1; return obo end
+createKeybindButton("Keybind", obn(), orbitalSettings, Settings.Rage.Orbital, "Keybind", function(newKey)
+	if orbitalKeybindLbl then orbitalKeybindLbl.Text = newKey end
+end)
+createDropdown("Mode", obn(), orbitalSettings, {"Circle", "Orbit", "Random"}, Settings.Rage.Orbital, "Mode")
+createSlider("Speed", obn(), orbitalSettings, 1, 30, Settings.Rage.Orbital, "Speed")
+createSlider("Distance", obn(), orbitalSettings, 5, 50, Settings.Rage.Orbital, "Distance")
+createSlider("Height", obn(), orbitalSettings, -20, 20, Settings.Rage.Orbital, "Height")
+createSwitch("Spectate", obn(), orbitalSettings, Settings.Rage.Orbital, "Spectate")
+
+-- Anti-Aim section
+local antiAimSettings, antiAimSection, antiAimKeybindLbl = createSection("Anti-Aim", "Keybind", rn(), rageTab, Settings.Rage.AntiAim, "Enabled")
+local aao = 0; local function aan() aao = aao + 1; return aao end
+createKeybindButton("Keybind", aan(), antiAimSettings, Settings.Rage.AntiAim, "Keybind", function(newKey)
+	if antiAimKeybindLbl then antiAimKeybindLbl.Text = newKey end
+end)
+createDropdown("Mode", aan(), antiAimSettings, {"Legit", "Blatant"}, Settings.Rage.AntiAim, "Mode")
+createSlider("Range", aan(), antiAimSettings, 10, 360, Settings.Rage.AntiAim, "Range")
+createSlider("Speed", aan(), antiAimSettings, 1, 50, Settings.Rage.AntiAim, "Speed")
+createSwitch("Spectate", aan(), antiAimSettings, Settings.Rage.AntiAim, "Spectate")
+
+local rf = Instance.new("Frame"); rf.LayoutOrder = rn(); rf.BackgroundTransparency = 1; rf.Size = UDim2.new(1,0,0,8); rf.Parent = rageTab
 
 -- ═══════════════════════════════════════════════════════════════
 -- COLLAPSIBLE AVATAR PREVIEW SECTION (inline in visuals tab)
@@ -1592,7 +1754,6 @@ previewContainer.BorderSizePixel = 0
 previewContainer.ZIndex = 40
 previewContainer.Parent = previewSettings
 
--- Beautiful corner lines for the preview container itself (instead of a rounded box)
 addCornerBorder(previewContainer, Color3.fromRGB(80, 80, 80), 1, 8)
 
 local avatarImage = Instance.new("ImageLabel")
@@ -1736,7 +1897,7 @@ local function updatePreviewAvatar(img, lbl)
 	end
 end
 
--- Update avatar preview based on settings
+-- FIX: Preview works regardless of GlobalESP state
 task.spawn(function()
 	local lastState = false
 	while task.wait(0.25) do
@@ -1746,14 +1907,13 @@ task.spawn(function()
 
 			if isExpanded then
 				if not lastState then
-					-- Just expanded, get new random avatar!
 					updatePreviewAvatar(avatarImage, avNameLabel)
 				end
 				lastState = true
 
 				local vs = Settings.Visuals
-				-- Box ESP preview
-				local showBox = vs.BoxESP.Enabled and vs.GlobalESP
+				-- Box ESP preview (no GlobalESP check)
+				local showBox = vs.BoxESP.Enabled
 				if showBox then
 					local style = vs.BoxESP.Style
 					local col = hexToColor3(vs.BoxESP.Color)
@@ -1764,7 +1924,6 @@ task.spawn(function()
 					if style == "Corners" then
 						boxShapesFrame.Visible = false
 						boxShapesFrameOutline.Visible = false
-						
 						boxCornerFrame.Visible = true
 						boxCornerFrameOutline.Visible = showOutline
 						for _, l in ipairs(lines) do
@@ -1776,18 +1935,14 @@ task.spawn(function()
 					else
 						boxCornerFrame.Visible = false
 						boxCornerFrameOutline.Visible = false
-						
 						boxShapesFrame.Visible = true
 						boxShapesFrameOutline.Visible = showOutline
-						
 						boxStroke.Color = col
 						boxStroke.Thickness = thickness
 						boxStrokeOutline.Color = outlineCol
 						boxStrokeOutline.Thickness = thickness + 2
-						
 						boxShapesFrameOutline.Size = UDim2.new(0, 104 + thickness * 2, 0, 104 + thickness * 2)
 						boxShapesFrameOutline.Position = UDim2.new(0.5, -52 - thickness, 0.5, -52 - thickness)
-						
 						if style == "Full" then
 							boxCorner.CornerRadius = UDim.new(0, 0)
 							boxCornerOutline.CornerRadius = UDim.new(0, 0)
@@ -1812,15 +1967,15 @@ task.spawn(function()
 					boxShapesFrameOutline.Visible = false
 				end
 
-				-- Name preview
-				avNameLabel.Visible = vs.NameESP.Enabled and vs.GlobalESP
+				-- Name preview (no GlobalESP check)
+				avNameLabel.Visible = vs.NameESP.Enabled
 				if avNameLabel.Visible then avNameLabel.TextColor3 = hexToColor3(vs.NameESP.Color) end
 
-				-- Health bar preview
-				avHealthBar.Visible = vs.Health.Enabled and vs.GlobalESP
+				-- Health bar preview (no GlobalESP check)
+				avHealthBar.Visible = vs.Health.Enabled
 
-				-- Chams preview (simulated via ImageColor3 tint)
-				if vs.Chams.Enabled and vs.GlobalESP then
+				-- Chams preview (no GlobalESP check)
+				if vs.Chams.Enabled then
 					avatarImage.ImageColor3 = hexToColor3(vs.Chams.VisibleColor)
 				else
 					avatarImage.ImageColor3 = Color3.fromRGB(255, 255, 255)
@@ -1837,15 +1992,24 @@ end)
 
 
 -- ═══════════════════════════════════════════════════════════════
--- TAB SWITCHING
+-- TAB SWITCHING (3 tabs)
 -- ═══════════════════════════════════════════════════════════════
-local function switchTab(showAim)
-	local active = showAim and aimTab or visTab
-	local inactive = showAim and visTab or aimTab
-	for _, ch in ipairs(inactive:GetChildren()) do if ch:IsA("GuiObject") then ch.Visible = true end end
-	inactive.Visible = false
-	active.Visible = true
-	for _, ch in ipairs(active:GetChildren()) do
+local function switchTab(tabName)
+	local tabs = {Aim = aimTab, Visuals = visTab, Rage = rageTab}
+	local buttons = {Aim = aimTabBtn, Visuals = visTabBtn, Rage = rageTabBtn}
+	local tabLines = {Aim = aimTabLine, Visuals = visTabLine, Rage = rageTabLine}
+	local tabStrokes = {Aim = aimTabStroke, Visuals = visTabStroke, Rage = rageTabStroke}
+
+	for name, tab in pairs(tabs) do
+		local isActive = (name == tabName)
+		if not isActive then
+			tab.Visible = false
+		end
+	end
+
+	local activeTab = tabs[tabName]
+	activeTab.Visible = true
+	for _, ch in ipairs(activeTab:GetChildren()) do
 		if ch:IsA("GuiObject") then
 			local ot = ch.BackgroundTransparency
 			if ot < 1 then ch.BackgroundTransparency = 1; TweenService:Create(ch, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = ot}):Play() end
@@ -1855,35 +2019,36 @@ local function switchTab(showAim)
 			end
 		end
 	end
-	aimTabBtn:SetAttribute("IsActiveTab", showAim); visTabBtn:SetAttribute("IsActiveTab", not showAim)
-	-- Update tab visuals
-	local function updateTab(btn, isActive)
+
+	for name, btn in pairs(buttons) do
+		local isActive = (name == tabName)
+		btn:SetAttribute("IsActiveTab", isActive)
 		local c = isActive and Color3.fromRGB(255,255,255) or Color3.fromRGB(100,100,100)
 		local icon = btn:FindFirstChild("Icon")
 		local label = btn:FindFirstChild("Label")
 		if icon then TweenService:Create(icon, TweenInfo.new(0.15), {TextColor3 = c}):Play() end
 		if label then TweenService:Create(label, TweenInfo.new(0.15), {TextColor3 = c}):Play() end
 		local img = btn:FindFirstChild("TabImage")
-		if img then TweenService:Create(img, TweenInfo.new(0.15), {ImageTransparency = isActive and 0.7 or 0.9}):Play() end
+		if img then TweenService:Create(img, TweenInfo.new(0.15), {ImageTransparency = isActive and 0 or 0.7}):Play() end
+		TweenService:Create(tabLines[name], TweenInfo.new(0.15), {BackgroundColor3 = isActive and Color3.fromRGB(255,255,255) or Color3.fromRGB(70,70,70)}):Play()
+		tabStrokes[name].Transparency = isActive and 0.3 or 1
 	end
-	updateTab(aimTabBtn, showAim); updateTab(visTabBtn, not showAim)
-	TweenService:Create(aimTabLine, TweenInfo.new(0.15), {BackgroundColor3 = showAim and Color3.fromRGB(255,255,255) or Color3.fromRGB(70,70,70)}):Play()
-	TweenService:Create(visTabLine, TweenInfo.new(0.15), {BackgroundColor3 = showAim and Color3.fromRGB(70,70,70) or Color3.fromRGB(255,255,255)}):Play()
-	aimTabStroke.Transparency = showAim and 0.3 or 1; visTabStroke.Transparency = showAim and 1 or 0.3
 end
 
-aimTabBtn.MouseButton1Click:Connect(function() switchTab(true) end)
-visTabBtn.MouseButton1Click:Connect(function() switchTab(false) end)
+aimTabBtn.MouseButton1Click:Connect(function() switchTab("Aim") end)
+visTabBtn.MouseButton1Click:Connect(function() switchTab("Visuals") end)
+rageTabBtn.MouseButton1Click:Connect(function() switchTab("Rage") end)
 
 -- ═══════════════════════════════════════════════════════════════
--- MINIMIZE & CLOSE
+-- MINIMIZE & CLOSE (fixed centering, +/- toggle, no empty space)
 -- ═══════════════════════════════════════════════════════════════
 minimizeBtn.MouseButton1Click:Connect(function()
 	dragging = false; targetPos = nil
 	if isMinimized then
 		isMinimized = false
+		minimizeBtn.Text = "-"
 		for _, ht in ipairs(halftones) do ht.Visible = true end
-		aimTabBtn.Visible = true; visTabBtn.Visible = true
+		aimTabBtn.Visible = true; visTabBtn.Visible = true; rageTabBtn.Visible = true
 		subtitle.Visible = true
 		TweenService:Create(title, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 16, 0, 6), Size = UDim2.new(0, 90, 0, 20)}):Play()
 		TweenService:Create(minimizeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, FRAME_W - 70, 0, 15)}):Play()
@@ -1896,17 +2061,19 @@ minimizeBtn.MouseButton1Click:Connect(function()
 		end)
 	else
 		isMinimized = true
+		minimizeBtn.Text = "+"
 		for _, ht in ipairs(halftones) do ht.Visible = false end
-		aimTabBtn.Visible = false; visTabBtn.Visible = false
+		aimTabBtn.Visible = false; visTabBtn.Visible = false; rageTabBtn.Visible = false
 		subtitle.Visible = false
-		TweenService:Create(title, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -95, 0, 6), Size = UDim2.new(0, 120, 0, 20)}):Play()
-		TweenService:Create(minimizeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 35, 0, 15)}):Play()
-		TweenService:Create(closeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 67, 0, 15)}):Play()
+		-- FIX: Center title vertically, position buttons at right with no empty space
+		TweenService:Create(title, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 16, 0.5, -10), Size = UDim2.new(0, 100, 0, 20)}):Play()
+		TweenService:Create(minimizeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(1, -65, 0.5, -11)}):Play()
+		TweenService:Create(closeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(1, -32, 0.5, -11)}):Play()
 		task.spawn(function()
 			local s = deviceScale; local op = frame.Position
 			for _=1,5 do uiScale.Scale = s*(0.7+math.random()*0.3); frame.Position = op + UDim2.new(0, math.random(-15,15), 0, math.random(-15,15)); frame.BackgroundTransparency = math.random()*0.3; task.wait(0.03+math.random()*0.04) end
 			uiScale.Scale = s; frame.Position = op; frame.BackgroundTransparency = 0
-			frame.Size = UDim2.new(0, 260, 0, TOPBAR_H); body.Visible = false
+			frame.Size = UDim2.new(0, 200, 0, TOPBAR_H); body.Visible = false
 		end)
 	end
 end)
@@ -1926,9 +2093,6 @@ end)
 -- ═══════════════════════════════════════════════════════════════
 -- SMOOTH DRAGGING
 -- ═══════════════════════════════════════════════════════════════
-local dragging = false
-local dragStart, startPos, targetPos, exactX, exactY = nil, nil, nil, nil, nil
-
 topbar.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		dragging = true; dragStart = input.Position; startPos = frame.Position; targetPos = startPos
