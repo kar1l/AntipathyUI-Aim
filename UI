@@ -723,7 +723,7 @@ end
 
 local aimTabBtn, aimTabLine, aimTabStroke = makeTabButton("Aim", "", -108, true, "rbxassetid://107427039527660")
 local visTabBtn, visTabLine, visTabStroke = makeTabButton("Visuals", "", 0, false, "rbxassetid://118751745086662")
-local rageTabBtn, rageTabLine, rageTabStroke = makeTabButton("Rage", "", 108, false, "rbxassetid://0")
+local rageTabBtn, rageTabLine, rageTabStroke = makeTabButton("Rage", "", 108, false, "rbxassetid://75300833275017")
 
 -- Minimize button glitch
 task.spawn(function()
