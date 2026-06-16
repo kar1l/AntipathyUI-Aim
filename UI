@@ -430,7 +430,7 @@ mainGradient.Rotation = 90
 mainGradient.Parent = frame
 
 -- Add cyber corners style corners to the main UI frame
-addCornerBorder(frame, Color3.fromRGB(80, 80, 80), 1.5, 16)
+addCornerBorder(frame, Color3.fromRGB(255, 255, 255), 1.5, 16)
 
 local frameStroke = Instance.new("UIStroke")
 frameStroke.Color = Color3.fromRGB(80, 80, 80)
@@ -449,43 +449,24 @@ dimOverlay.Active = false
 dimOverlay.ZIndex = 499
 dimOverlay.Parent = frame
 
-local lastInteraction = tick()
+-- Click-off Dimming: dim when clicking outside UI, undim when clicking inside
+local isDimmed = false
 UserInputService.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.MouseButton2 or input.UserInputType == Enum.UserInputType.Keyboard then
-		lastInteraction = tick()
-	end
-end)
-UserInputService.InputChanged:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement then
-		lastInteraction = tick()
-	end
-end)
-
-task.spawn(function()
-	local isDimmed = false
-	while frame.Parent do
-		task.wait(0.1)
-		local now = tick()
-		local idleTime = now - lastInteraction
-		local isMouseOver = false
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		local mousePos = UserInputService:GetMouseLocation()
 		local guiPos = frame.AbsolutePosition
 		local guiSize = frame.AbsoluteSize
-		if mousePos.X >= guiPos.X and mousePos.X <= guiPos.X + guiSize.X and
-		   mousePos.Y >= guiPos.Y and mousePos.Y <= guiPos.Y + guiSize.Y then
-			isMouseOver = true
-			lastInteraction = now
-		end
-
-		if idleTime > 3.0 and not isMouseOver then
-			if not isDimmed then
-				isDimmed = true
-				TweenService:Create(dimOverlay, TweenInfo.new(0.4), {BackgroundTransparency = 0.45}):Play()
-			end
-		else
+		local isInside = mousePos.X >= guiPos.X and mousePos.X <= guiPos.X + guiSize.X and
+		                 mousePos.Y >= guiPos.Y and mousePos.Y <= guiPos.Y + guiSize.Y
+		if isInside then
 			if isDimmed then
 				isDimmed = false
 				TweenService:Create(dimOverlay, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
+			end
+		else
+			if not isDimmed then
+				isDimmed = true
+				TweenService:Create(dimOverlay, TweenInfo.new(0.4), {BackgroundTransparency = 0.45}):Play()
 			end
 		end
 	end
@@ -603,6 +584,9 @@ topGrad.Color = ColorSequence.new{
 topGrad.Rotation = 90
 topGrad.Parent = topbar
 
+-- Add corners to topbar
+addCornerBorder(topbar, Color3.fromRGB(255, 255, 255), 1, 12)
+
 
 -- Title
 local title = Instance.new("TextLabel")
@@ -710,29 +694,69 @@ local function makeTopButton(text, posX, posY, colorSet)
 end
 
 -- Buttons placed near title (right side of topbar) — larger size and misaligned
-local minimizeBtn = makeTopButton("-", FRAME_W - 85, 10, {base = Color3.fromRGB(0,0,0), hoverBase = Color3.fromRGB(30,30,30), stroke = Color3.fromRGB(100,100,100)})
+local minimizeBtn = makeTopButton("-", FRAME_W - 85, 12, {base = Color3.fromRGB(0,0,0), hoverBase = Color3.fromRGB(30,30,30), stroke = Color3.fromRGB(255,255,255)})
 minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 
-local closeBtn = makeTopButton("x", FRAME_W - 42, 16, {
+local closeBtn = makeTopButton("x", FRAME_W - 42, 12, {
 	base = Color3.fromRGB(240,240,240),
 	gradient = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(200,200,200))},
 	hoverGradient = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(255,100,100)), ColorSequenceKeypoint.new(1, Color3.fromRGB(200,60,60))},
-	stroke = Color3.fromRGB(120,120,120)
+	stroke = Color3.fromRGB(80,80,80)
 })
 
 -- ═══════════════════════════════════════════════════════════════
--- TAB BUTTONS — 3 tabs: Aim, Visuals, Rage
+-- RIGHT-SIDE TAB PANEL
 -- ═══════════════════════════════════════════════════════════════
-local function makeTabButton(text, icon, xOffset, isActive, bgImageId)
+local TAB_PANEL_W = 110
+
+local tabPanel = Instance.new("Frame")
+tabPanel.Name = "TabPanel"
+tabPanel.Size = UDim2.new(0, TAB_PANEL_W, 1, -TOPBAR_H)
+tabPanel.Position = UDim2.new(1, -TAB_PANEL_W, 0, TOPBAR_H)
+tabPanel.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+tabPanel.BorderSizePixel = 0
+tabPanel.ZIndex = 50
+tabPanel.Parent = frame
+
+local tabPanelGrad = Instance.new("UIGradient")
+tabPanelGrad.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 15, 15)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 8, 8))
+}
+tabPanelGrad.Rotation = 180
+tabPanelGrad.Parent = tabPanel
+
+-- Separator line between body and tabs
+local tabSep = Instance.new("Frame")
+tabSep.Size = UDim2.new(0, 1, 1, 0)
+tabSep.Position = UDim2.new(0, 0, 0, 0)
+tabSep.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+tabSep.BorderSizePixel = 0
+tabSep.ZIndex = 51
+tabSep.Parent = tabPanel
+
+local tabLayout = Instance.new("UIListLayout")
+tabLayout.Padding = UDim.new(0, 6)
+tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+tabLayout.Parent = tabPanel
+
+local tabPanelPad = Instance.new("UIPadding")
+tabPanelPad.PaddingTop = UDim.new(0, 12)
+tabPanelPad.PaddingLeft = UDim.new(0, 8)
+tabPanelPad.PaddingRight = UDim.new(0, 8)
+tabPanelPad.Parent = tabPanel
+
+local function makeTabButton(text, icon, layoutOrder, isActive, bgImageId)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(0, 100, 0, 36)
-	btn.Position = UDim2.new(0.5, xOffset, 0.5, -18)
+	btn.Size = UDim2.new(1, 0, 0, 70)
+	btn.LayoutOrder = layoutOrder
 	btn.BackgroundTransparency = 1
 	btn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 	btn.AutoButtonColor = false
 	btn.Text = ""
 	btn.ZIndex = 55
-	btn.Parent = topbar
+	btn.Parent = tabPanel
 	-- Apply cyber corners style corners to tabs
 	addCornerBorder(btn, isActive and Color3.fromRGB(120, 120, 120) or Color3.fromRGB(50, 50, 50), 1, 6)
 
@@ -749,11 +773,11 @@ local function makeTabButton(text, icon, xOffset, isActive, bgImageId)
 
 	local iconLabel = Instance.new("TextLabel")
 	iconLabel.Name = "Icon"
-	iconLabel.Size = UDim2.new(1, 0, 0, 14)
-	iconLabel.Position = UDim2.new(0, 0, 0, 2)
+	iconLabel.Size = UDim2.new(1, 0, 0, 18)
+	iconLabel.Position = UDim2.new(0, 0, 0, 8)
 	iconLabel.BackgroundTransparency = 1
 	iconLabel.Font = Enum.Font.SourceSansBold
-	iconLabel.TextSize = 13
+	iconLabel.TextSize = 16
 	iconLabel.Text = icon
 	iconLabel.TextColor3 = isActive and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(100, 100, 100)
 	iconLabel.ZIndex = 57
@@ -761,11 +785,11 @@ local function makeTabButton(text, icon, xOffset, isActive, bgImageId)
 
 	local textLabel = Instance.new("TextLabel")
 	textLabel.Name = "Label"
-	textLabel.Size = UDim2.new(1, 0, 0, 14)
-	textLabel.Position = UDim2.new(0, 0, 1, -16)
+	textLabel.Size = UDim2.new(1, 0, 0, 16)
+	textLabel.Position = UDim2.new(0, 0, 1, -24)
 	textLabel.BackgroundTransparency = 1
 	textLabel.Font = Enum.Font.GothamBold
-	textLabel.TextSize = 13
+	textLabel.TextSize = 14
 	textLabel.Text = text
 	textLabel.TextColor3 = isActive and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(100, 100, 100)
 	textLabel.ZIndex = 57
@@ -816,9 +840,9 @@ local function makeTabButton(text, icon, xOffset, isActive, bgImageId)
 	return btn, line, ts
 end
 
-local aimTabBtn, aimTabLine, aimTabStroke = makeTabButton("Aim", "", -108, true, "rbxassetid://107427039527660")
-local visTabBtn, visTabLine, visTabStroke = makeTabButton("Visuals", "", 0, false, "rbxassetid://118751745086662")
-local rageTabBtn, rageTabLine, rageTabStroke = makeTabButton("Rage", "", 108, false, "rbxassetid://0")
+local aimTabBtn, aimTabLine, aimTabStroke = makeTabButton("Aim", "", 1, true, "rbxassetid://107427039527660")
+local visTabBtn, visTabLine, visTabStroke = makeTabButton("Visuals", "", 2, false, "rbxassetid://118751745086662")
+local rageTabBtn, rageTabLine, rageTabStroke = makeTabButton("Rage", "", 3, false, "rbxassetid://0")
 
 -- Minimize button glitch
 task.spawn(function()
@@ -865,7 +889,7 @@ local body = Instance.new("Frame")
 body.Name = "Body"
 body.BackgroundTransparency = 1
 body.Position = UDim2.new(0, 0, 0, TOPBAR_H)
-body.Size = UDim2.new(1, 0, 1, -TOPBAR_H - 5)
+body.Size = UDim2.new(1, -TAB_PANEL_W, 1, -TOPBAR_H - 5)
 body.ZIndex = 10
 body.Parent = frame
 
@@ -1378,7 +1402,7 @@ local function createDropdown(text, order, parent, options, tbl, key, wScale, wO
 
 	local dl = Instance.new("Frame"); dl.Size = UDim2.new(1, 0, 0, 0)
 	dl.Position = UDim2.new(0, 0, 0, 32); dl.BackgroundColor3 = Color3.fromRGB(12,12,14)
-	dl.BorderSizePixel = 0; dl.Visible = false; dl.ClipsDescendants = true; dl.ZIndex = 100; dl.Parent = c
+	dl.BorderSizePixel = 0; dl.Visible = false; dl.ClipsDescendants = true; dl.ZIndex = 500; dl.Parent = c
 	dl.Name = "DropdownList"
 	Instance.new("UICorner", dl).CornerRadius = UDim.new(0, 6)
 	Instance.new("UIStroke", dl).Color = Color3.fromRGB(55,55,60)
@@ -1418,7 +1442,7 @@ local function createDropdown(text, order, parent, options, tbl, key, wScale, wO
 	for i, opt in ipairs(options) do
 		local ob = Instance.new("TextButton"); ob.LayoutOrder = i; ob.Size = UDim2.new(1, 0, 0, 24)
 		ob.BackgroundColor3 = Color3.fromRGB(20,20,22); ob.Text = opt; ob.Font = Enum.Font.GothamMedium; ob.TextSize = 12
-		ob.TextColor3 = Color3.fromRGB(190,190,195); ob.AutoButtonColor = false; ob.ZIndex = 101; ob.Parent = dl
+		ob.TextColor3 = Color3.fromRGB(190,190,195); ob.AutoButtonColor = false; ob.ZIndex = 501; ob.Parent = dl
 		Instance.new("UICorner", ob).CornerRadius = UDim.new(0, 4)
 		ob.MouseEnter:Connect(function() TweenService:Create(ob, TweenInfo.new(0.08), {BackgroundColor3 = Color3.fromRGB(40,40,44), TextColor3 = Color3.fromRGB(255,255,255)}):Play() end)
 		ob.MouseLeave:Connect(function() TweenService:Create(ob, TweenInfo.new(0.08), {BackgroundColor3 = Color3.fromRGB(20,20,22), TextColor3 = Color3.fromRGB(190,190,195)}):Play() end)
@@ -1760,15 +1784,15 @@ createKeybindButton("Keybind", 1, sr1, Settings.Aim.SilentAim, "Keybind", functi
 	if silentKeybindLbl then silentKeybindLbl.Text = newKey end
 end, 0.5, -4)
 createDropdown("Target Part", 2, sr1, targetPartOptions, Settings.Aim.SilentAim, "TargetPart", 0.5, -4)
-local sr2 = createRowContainer(ssn(), silentSettings, 40)
+local sr2 = createRowContainer(ssn(), silentSettings, 22)
 createSwitch("Show FOV Circle", 1, sr2, Settings.Aim.SilentAim, "ShowFOV", nil, 0.5, -4)
-createSlider("FOV Radius", 2, sr2, 10, 500, Settings.Aim.SilentAim, "FOV", 1, "", 0.5, -4, true)
+createSwitch("FOV Filled", 2, sr2, Settings.Aim.SilentAim, "FOVFilled", nil, 0.5, -4)
 local sr3 = createRowContainer(ssn(), silentSettings, 40)
-createSwitch("FOV Filled", 1, sr3, Settings.Aim.SilentAim, "FOVFilled", nil, 0.5, -4)
-createSlider("FOV Sides", 2, sr3, 8, 128, Settings.Aim.SilentAim, "FOVSides", 1, "", 0.5, -4, true)
+createSlider("FOV Thickness", 1, sr3, 1, 5, Settings.Aim.SilentAim, "FOVThickness", 1, "", 0.5, -4, true)
+createSlider("FOV Transparency", 2, sr3, 0, 1, Settings.Aim.SilentAim, "FOVTransparency", 0.05, "", 0.5, -4, true)
 local sr4 = createRowContainer(ssn(), silentSettings, 40)
-createSlider("FOV Thickness", 1, sr4, 1, 5, Settings.Aim.SilentAim, "FOVThickness", 1, "", 0.5, -4, true)
-createSlider("FOV Transparency", 2, sr4, 0, 1, Settings.Aim.SilentAim, "FOVTransparency", 0.05, "", 0.5, -4, true)
+createSlider("FOV Sides", 1, sr4, 8, 128, Settings.Aim.SilentAim, "FOVSides", 1, "", 0.5, -4, true)
+createSlider("FOV Radius", 2, sr4, 10, 500, Settings.Aim.SilentAim, "FOV", 1, "", 0.5, -4, true)
 local sr5 = createRowContainer(ssn(), silentSettings, 22)
 createHexColor("FOV Color", 1, sr5, Settings.Aim.SilentAim, "FOVColor", 0.5, -4)
 createHexColor("Outline Color", 2, sr5, Settings.Aim.SilentAim, "FOVOutlineColor", 0.5, -4)
@@ -2255,12 +2279,13 @@ minimizeBtn.MouseButton1Click:Connect(function()
 		isMinimized = false
 		minimizeBtn.Text = "-"
 		for _, ht in ipairs(halftones) do ht.Visible = true end
+		tabPanel.Visible = true
 		aimTabBtn.Visible = true; visTabBtn.Visible = true; rageTabBtn.Visible = true
 		subtitle.Visible = true
 		TweenService:Create(title, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 16, 0, 6), Size = UDim2.new(0, 90, 0, 20)}):Play()
 		TweenService:Create(subtitle, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 16, 0, 26), Size = UDim2.new(0, 200, 0, 15)}):Play()
-		TweenService:Create(minimizeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, FRAME_W - 85, 0, 10)}):Play()
-		TweenService:Create(closeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, FRAME_W - 42, 0, 16)}):Play()
+		TweenService:Create(minimizeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, FRAME_W - 85, 0, 12)}):Play()
+		TweenService:Create(closeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, FRAME_W - 42, 0, 12)}):Play()
 		task.spawn(function()
 			body.Visible = true; frame.Size = UDim2.new(0, FRAME_W, 0, FRAME_H)
 			local s = deviceScale; local op = frame.Position
@@ -2271,13 +2296,14 @@ minimizeBtn.MouseButton1Click:Connect(function()
 		isMinimized = true
 		minimizeBtn.Text = "+"
 		for _, ht in ipairs(halftones) do ht.Visible = false end
+		tabPanel.Visible = false
 		aimTabBtn.Visible = false; visTabBtn.Visible = false; rageTabBtn.Visible = false
 		subtitle.Visible = true
 		-- Keep title at top and subtitle below it, center-ish aligned
 		TweenService:Create(title, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 16, 0, 6), Size = UDim2.new(0, 150, 0, 20)}):Play()
 		TweenService:Create(subtitle, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 16, 0, 26), Size = UDim2.new(0, 200, 0, 15)}):Play()
-		TweenService:Create(minimizeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(1, -85, 0, 10)}):Play()
-		TweenService:Create(closeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(1, -42, 0, 16)}):Play()
+		TweenService:Create(minimizeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(1, -85, 0, 12)}):Play()
+		TweenService:Create(closeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(1, -42, 0, 12)}):Play()
 		task.spawn(function()
 			local s = deviceScale; local op = frame.Position
 			for _=1,5 do uiScale.Scale = s*(0.7+math.random()*0.3); frame.Position = op + UDim2.new(0, math.random(-15,15), 0, math.random(-15,15)); frame.BackgroundTransparency = math.random()*0.3; task.wait(0.03+math.random()*0.04) end
