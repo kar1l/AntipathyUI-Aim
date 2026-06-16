@@ -392,7 +392,7 @@ local function addCornerBorder(parent, color, thickness, cornerLen)
 		line.Name = "CornerLine"
 		line.Position = p[1]; line.Size = p[2]
 		line.BackgroundColor3 = color; line.BorderSizePixel = 0
-		line.ZIndex = parent.ZIndex + 1; line.Parent = parent
+		line.ZIndex = 500; line.Parent = parent
 		table.insert(corners, line)
 	end
 	return corners
@@ -547,11 +547,13 @@ task.spawn(function()
 		local fs = frame.AbsoluteSize
 		local ts = bgFooter.AbsoluteSize
 		if fs.X == 0 or ts.X == 0 then RunService.Heartbeat:Wait() continue end
-		local mx, my = fs.X - ts.X, fs.Y - ts.Y
+		local minX, minY = 0, TOPBAR_H
+		local maxX, maxY = fs.X - 110 - ts.X, fs.Y - ts.Y
+		local mx, my = maxX, maxY
 		bfx = bfx + bspeed * bdx; bfy = bfy + bspeed * bdy
 		local hit = false
-		if bfx >= mx then bfx = mx; bdx = -1; hit = true elseif bfx <= 0 then bfx = 0; bdx = 1; hit = true end
-		if bfy >= my then bfy = my; bdy = -1; hit = true elseif bfy <= 0 then bfy = 0; bdy = 1; hit = true end
+		if bfx >= mx then bfx = mx; bdx = -1; hit = true elseif bfx <= minX then bfx = minX; bdx = 1; hit = true end
+		if bfy >= my then bfy = my; bdy = -1; hit = true elseif bfy <= minY then bfy = minY; bdy = 1; hit = true end
 		if hit then bgFooter.TextColor3 = Color3.fromRGB(math.random(150,255), math.random(150,255), math.random(150,255)) end
 		local now = tick()
 		if now - blt > 0.03 then
@@ -727,13 +729,17 @@ tabPanelGrad.Rotation = 180
 tabPanelGrad.Parent = tabPanel
 
 -- Separator line between body and tabs
+local tabSepFolder = Instance.new("Folder")
+tabSepFolder.Name = "TabSepFolder"
+tabSepFolder.Parent = tabPanel
+
 local tabSep = Instance.new("Frame")
 tabSep.Size = UDim2.new(0, 1, 1, 0)
 tabSep.Position = UDim2.new(0, 0, 0, 0)
 tabSep.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 tabSep.BorderSizePixel = 0
 tabSep.ZIndex = 51
-tabSep.Parent = tabPanel
+tabSep.Parent = tabSepFolder
 
 local tabLayout = Instance.new("UIListLayout")
 tabLayout.Padding = UDim.new(0, 6)
@@ -773,11 +779,11 @@ local function makeTabButton(text, icon, layoutOrder, isActive, bgImageId)
 
 	local iconLabel = Instance.new("TextLabel")
 	iconLabel.Name = "Icon"
-	iconLabel.Size = UDim2.new(1, 0, 0, 18)
-	iconLabel.Position = UDim2.new(0, 0, 0, 8)
+	iconLabel.Size = UDim2.new(1, 0, 0, 24)
+	iconLabel.Position = UDim2.new(0, 0, 0, 12)
 	iconLabel.BackgroundTransparency = 1
 	iconLabel.Font = Enum.Font.SourceSansBold
-	iconLabel.TextSize = 16
+	iconLabel.TextSize = 20
 	iconLabel.Text = icon
 	iconLabel.TextColor3 = isActive and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(100, 100, 100)
 	iconLabel.ZIndex = 57
@@ -841,8 +847,8 @@ local function makeTabButton(text, icon, layoutOrder, isActive, bgImageId)
 end
 
 local aimTabBtn, aimTabLine, aimTabStroke = makeTabButton("Aim", "", 1, true, "rbxassetid://107427039527660")
-local visTabBtn, visTabLine, visTabStroke = makeTabButton("Visuals", "", 2, false, "rbxassetid://118751745086662")
-local rageTabBtn, rageTabLine, rageTabStroke = makeTabButton("Rage", "", 3, false, "rbxassetid://0")
+local visTabBtn, visTabLine, visTabStroke = makeTabButton("Visuals", "", 2, true, "rbxassetid://118751745086662")
+local rageTabBtn, rageTabLine, rageTabStroke = makeTabButton("Rage", "", 3, true, "rbxassetid://75300833275017")
 
 -- Minimize button glitch
 task.spawn(function()
