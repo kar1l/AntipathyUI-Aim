@@ -108,7 +108,7 @@ local Settings = {
 			Style = "Bar",
 			BarPosition = "Left",
 			ShowPercentage = false,
-			GradientBar = true,
+			GradientBar = false,
 			BarThickness = 2,
 		},
 		NameESP = {
@@ -164,6 +164,13 @@ local Settings = {
 			Range = 180,
 			Speed = 10,
 			Spectate = false,
+		},
+		CFrame = {
+			Enabled = false,
+			Keybind = "...",
+			Speed = 16,
+			Mode = "Normal",
+			FlyHeight = 0,
 		},
 	},
 }
@@ -1436,6 +1443,7 @@ local function createDropdown(text, order, parent, options, tbl, key, wScale, wO
 			end
 			if not anyExpanded then
 				sectionFrame.ZIndex = 10
+				sectionFrame.ClipsDescendants = true
 			end
 		end
 
@@ -1471,6 +1479,7 @@ local function createDropdown(text, order, parent, options, tbl, key, wScale, wO
 			end
 			if sectionFrame then
 				sectionFrame.ZIndex = 30
+				sectionFrame.ClipsDescendants = false
 			end
 			dl.Visible = true; dl.Size = UDim2.new(1, 0, 0, 0); arrowLbl.Text = "▲"
 			TweenService:Create(dl, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, #options * 26 + 8)}):Play()
@@ -1603,6 +1612,35 @@ local function createHexColor(text, order, parent, tbl, key, wScale, wOff)
 			end
 		end
 		lastClick = now
+	end)
+
+	-- Middle click (scrollwheel click): toggle rainbow
+	sw.MouseButton2Click:Connect(function() end) -- needed for input routing
+	UserInputService.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton3 then
+			-- Check if mouse is over the swatch
+			local mousePos = UserInputService:GetMouseLocation()
+			local swPos = sw.AbsolutePosition
+			local swSize = sw.AbsoluteSize
+			if mousePos.X >= swPos.X and mousePos.X <= swPos.X + swSize.X and mousePos.Y >= swPos.Y and mousePos.Y <= swPos.Y + swSize.Y then
+				if rainbowActive then
+					rainbowActive = false
+					if rainbowConn then rainbowConn:Disconnect(); rainbowConn = nil end
+				else
+					rainbowActive = true
+					cp.Visible = false; pickerActive = false
+					rainbowConn = RunService.Heartbeat:Connect(function()
+						if not rainbowActive then return end
+						local hue = (tick() * 0.5) % 1
+						local c3 = Color3.fromHSV(hue, 1, 1)
+						sw.BackgroundColor3 = c3
+						local hex = color3ToHex(c3)
+						if tbl then tbl[key] = hex end
+						hb.PlaceholderText = "#"..hex; hb.Text = ""
+					end)
+				end
+			end
+		end
 	end)
 end
 
@@ -1888,7 +1926,7 @@ createSwitch("Show Studs", den(), distESPSettings, Settings.Visuals.Distance, "S
 local healthESPSettings, healthSection = createSection("Health ESP", nil, vn(), visTab, Settings.Visuals.Health, "Enabled")
 local heo = 0; local function hen() heo = heo + 1; return heo end
 local hr1 = createRowContainer(hen(), healthESPSettings, 30)
-createDropdown("Style", 1, hr1, {"Bar", "Text", "Both", "Gradient Bar"}, Settings.Visuals.Health, "Style", 0.5, -4)
+createDropdown("Style", 1, hr1, {"Bar", "Text", "Both"}, Settings.Visuals.Health, "Style", 0.5, -4)
 createDropdown("Bar Position", 2, hr1, {"Left", "Right", "Top", "Bottom"}, Settings.Visuals.Health, "BarPosition", 0.5, -4)
 createSwitch("Show Percentage", hen(), healthESPSettings, Settings.Visuals.Health, "ShowPercentage")
 createSwitch("Gradient Bar", hen(), healthESPSettings, Settings.Visuals.Health, "GradientBar")
@@ -1933,7 +1971,7 @@ local hbo = 0; local function hbn() hbo = hbo + 1; return hbo end
 createKeybindButton("Keybind", hbn(), hitboxSettings, Settings.Rage.HitboxExpander, "Keybind", function(newKey)
 	if hitboxKeybindLbl then hitboxKeybindLbl.Text = newKey end
 end)
-createSlider("Size", hbn(), hitboxSettings, 1, 25, Settings.Rage.HitboxExpander, "Size")
+createSlider("Size", hbn(), hitboxSettings, 1, 50, Settings.Rage.HitboxExpander, "Size")
 createSwitch("Visualize", hbn(), hitboxSettings, Settings.Rage.HitboxExpander, "Visualize")
 createHexColor("Color", hbn(), hitboxSettings, Settings.Rage.HitboxExpander, "Color")
 createSlider("Transparency", hbn(), hitboxSettings, 0, 1, Settings.Rage.HitboxExpander, "Transparency", 0.05)
@@ -1961,6 +1999,16 @@ local aar1 = createRowContainer(aan(), antiAimSettings, 40)
 createSlider("Range", 1, aar1, 10, 360, Settings.Rage.AntiAim, "Range", 1, "", 0.5, -4, true)
 createSlider("Speed", 2, aar1, 1, 50, Settings.Rage.AntiAim, "Speed", 1, "", 0.5, -4, true)
 createSwitch("Spectate", aan(), antiAimSettings, Settings.Rage.AntiAim, "Spectate")
+
+-- CFrame section
+local cframeSettings, cframeSection, cframeKeybindLbl = createSection("CFrame", "Keybind", rn(), rageTab, Settings.Rage.CFrame, "Enabled")
+local cfo = 0; local function cfn() cfo = cfo + 1; return cfo end
+createKeybindButton("Keybind", cfn(), cframeSettings, Settings.Rage.CFrame, "Keybind", function(newKey)
+	if cframeKeybindLbl then cframeKeybindLbl.Text = newKey end
+end)
+createDropdown("Mode", cfn(), cframeSettings, {"Normal", "Noclip"}, Settings.Rage.CFrame, "Mode")
+createSlider("Speed", cfn(), cframeSettings, 1, 200, Settings.Rage.CFrame, "Speed")
+createSlider("Fly Height", cfn(), cframeSettings, -50, 50, Settings.Rage.CFrame, "FlyHeight")
 
 local rf = Instance.new("Frame"); rf.LayoutOrder = rn(); rf.BackgroundTransparency = 1; rf.Size = UDim2.new(1,0,0,8); rf.Parent = rageTab
 end
@@ -2218,6 +2266,425 @@ task.spawn(function()
 end)
 end
 
+
+-- ═══════════════════════════════════════════════════════════════
+-- UI ENHANCEMENT: SECTION HOVER GLOW
+-- ═══════════════════════════════════════════════════════════════
+do
+	local function applySectionHoverGlow(section)
+		if not section or not section:IsA("Frame") then return end
+		local glowStroke = Instance.new("UIStroke")
+		glowStroke.Name = "HoverGlow"
+		glowStroke.Color = Color3.fromRGB(255, 255, 255)
+		glowStroke.Thickness = 1.5
+		glowStroke.Transparency = 1
+		glowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		glowStroke.Parent = section
+
+		section.MouseEnter:Connect(function()
+			TweenService:Create(glowStroke, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {Transparency = 0.5, Color = Color3.fromRGB(200, 200, 255)}):Play()
+			TweenService:Create(section, TweenInfo.new(0.2), {BackgroundTransparency = math.max(0, section.BackgroundTransparency - 0.1)}):Play()
+		end)
+		section.MouseLeave:Connect(function()
+			TweenService:Create(glowStroke, TweenInfo.new(0.3, Enum.EasingStyle.Sine), {Transparency = 1}):Play()
+		end)
+	end
+
+	-- Apply to all existing sections in each tab
+	task.defer(function()
+		task.wait(0.1)
+		for _, tab in ipairs({aimTab, visTab, rageTab}) do
+			for _, child in ipairs(tab:GetChildren()) do
+				if child:IsA("Frame") and child.BackgroundTransparency < 1 and child:FindFirstChild("Settings") then
+					applySectionHoverGlow(child)
+				end
+			end
+		end
+	end)
+end
+
+-- ═══════════════════════════════════════════════════════════════
+-- UI ENHANCEMENT: PARTICLE SYSTEM
+-- ═══════════════════════════════════════════════════════════════
+do
+	local particleFolder = Instance.new("Folder")
+	particleFolder.Name = "Particles"
+	particleFolder.Parent = frame
+
+	local NUM_PARTICLES = 18
+	local particles = {}
+
+	for i = 1, NUM_PARTICLES do
+		local p = Instance.new("Frame")
+		p.Size = UDim2.new(0, math.random(1, 3), 0, math.random(1, 3))
+		p.BackgroundColor3 = Color3.fromRGB(math.random(150, 255), math.random(150, 255), math.random(150, 255))
+		p.BackgroundTransparency = math.random(60, 90) / 100
+		p.BorderSizePixel = 0
+		p.ZIndex = 3
+		p.Position = UDim2.new(math.random() * 0.9, 0, math.random() * 0.9 + 0.05, 0)
+		p.Parent = frame
+		table.insert(particles, {
+			frame = p,
+			vx = (math.random() - 0.5) * 0.15,
+			vy = (math.random() - 0.5) * 0.08,
+			x = p.Position.X.Scale,
+			y = p.Position.Y.Scale,
+			alpha = math.random() * math.pi * 2,
+		})
+	end
+
+	task.spawn(function()
+		while frame.Parent do
+			for _, pt in ipairs(particles) do
+				pt.alpha = pt.alpha + 0.02
+				pt.x = pt.x + pt.vx * 0.005
+				pt.y = pt.y + pt.vy * 0.005
+				-- Wrap around
+				if pt.x > 1 then pt.x = -0.02 elseif pt.x < -0.02 then pt.x = 1 end
+				if pt.y > 1 then pt.y = 0.05 elseif pt.y < 0.05 then pt.y = 1 end
+				pt.frame.Position = UDim2.new(pt.x, 0, pt.y + math.sin(pt.alpha) * 0.01, 0)
+				pt.frame.BackgroundTransparency = 0.7 + math.sin(pt.alpha * 1.5) * 0.2
+			end
+			RunService.Heartbeat:Wait()
+		end
+	end)
+end
+
+-- ═══════════════════════════════════════════════════════════════
+-- UI ENHANCEMENT: STATUS BAR
+-- ═══════════════════════════════════════════════════════════════
+do
+	local STATUS_H = 22
+	local statusBar = Instance.new("Frame")
+	statusBar.Name = "StatusBar"
+	statusBar.Size = UDim2.new(1, -TAB_PANEL_W, 0, STATUS_H)
+	statusBar.Position = UDim2.new(0, 0, 1, -STATUS_H)
+	statusBar.BackgroundColor3 = Color3.fromRGB(8, 8, 8)
+	statusBar.BorderSizePixel = 0
+	statusBar.ZIndex = 60
+	statusBar.Parent = frame
+
+	local statusGrad = Instance.new("UIGradient")
+	statusGrad.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(12, 12, 12)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(5, 5, 5))
+	}
+	statusGrad.Parent = statusBar
+
+	local statusSep = Instance.new("Frame")
+	statusSep.Size = UDim2.new(1, 0, 0, 1)
+	statusSep.Position = UDim2.new(0, 0, 0, 0)
+	statusSep.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	statusSep.BorderSizePixel = 0
+	statusSep.ZIndex = 61
+	statusSep.Parent = statusBar
+
+	local fpsLabel = Instance.new("TextLabel")
+	fpsLabel.BackgroundTransparency = 1
+	fpsLabel.Size = UDim2.new(0, 70, 1, 0)
+	fpsLabel.Position = UDim2.new(0, 8, 0, 0)
+	fpsLabel.Text = "FPS: --"
+	fpsLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
+	fpsLabel.Font = Enum.Font.Code
+	fpsLabel.TextSize = 10
+	fpsLabel.TextXAlignment = Enum.TextXAlignment.Left
+	fpsLabel.ZIndex = 62
+	fpsLabel.Parent = statusBar
+
+	local playersLabel = Instance.new("TextLabel")
+	playersLabel.BackgroundTransparency = 1
+	playersLabel.Size = UDim2.new(0, 90, 1, 0)
+	playersLabel.Position = UDim2.new(0, 80, 0, 0)
+	playersLabel.Text = "Players: --"
+	playersLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
+	playersLabel.Font = Enum.Font.Code
+	playersLabel.TextSize = 10
+	playersLabel.TextXAlignment = Enum.TextXAlignment.Left
+	playersLabel.ZIndex = 62
+	playersLabel.Parent = statusBar
+
+	local activeLabel = Instance.new("TextLabel")
+	activeLabel.BackgroundTransparency = 1
+	activeLabel.Size = UDim2.new(0, 100, 1, 0)
+	activeLabel.Position = UDim2.new(1, -TAB_PANEL_W - 108, 0, 0)
+	activeLabel.Text = "Active: 0"
+	activeLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
+	activeLabel.Font = Enum.Font.Code
+	activeLabel.TextSize = 10
+	activeLabel.TextXAlignment = Enum.TextXAlignment.Right
+	activeLabel.ZIndex = 62
+	activeLabel.Parent = statusBar
+
+	local frameCount = 0
+	local lastFPSUpdate = tick()
+	local statusGlitch = {"FPS", "F?S", "FP$", "??S"}
+
+	task.spawn(function()
+		while statusBar.Parent do
+			frameCount = frameCount + 1
+			local now = tick()
+			if now - lastFPSUpdate >= 0.5 then
+				local fps = math.floor(frameCount / (now - lastFPSUpdate))
+				frameCount = 0
+				lastFPSUpdate = now
+
+				local fpsText = "FPS: " .. fps
+				if math.random(1, 8) == 1 then
+					fpsText = statusGlitch[math.random(#statusGlitch)] .. ": " .. fps
+				end
+				fpsLabel.Text = fpsText
+				fpsLabel.TextColor3 = fps > 50 and Color3.fromRGB(120, 180, 120) or fps > 30 and Color3.fromRGB(180, 180, 80) or Color3.fromRGB(180, 80, 80)
+
+				playersLabel.Text = "Players: " .. #Players:GetPlayers()
+
+				-- Count active features
+				local count = 0
+				if Settings.Aim.Aimlock.Enabled then count = count + 1 end
+				if Settings.Aim.SilentAim.Enabled then count = count + 1 end
+				if Settings.Aim.Triggerbot.Enabled then count = count + 1 end
+				if Settings.Visuals.BoxESP.Enabled then count = count + 1 end
+				if Settings.Visuals.Chams.Enabled then count = count + 1 end
+				if Settings.Visuals.Trail.Enabled then count = count + 1 end
+				if Settings.Visuals.NameESP.Enabled then count = count + 1 end
+				if Settings.Visuals.Distance.Enabled then count = count + 1 end
+				if Settings.Visuals.Health.Enabled then count = count + 1 end
+				if Settings.Visuals.Tracers.Enabled then count = count + 1 end
+				if Settings.Rage.KillAura.Enabled then count = count + 1 end
+				if Settings.Rage.Spinbot.Enabled then count = count + 1 end
+				if Settings.Rage.HitboxExpander.Enabled then count = count + 1 end
+				if Settings.Rage.Orbital.Enabled then count = count + 1 end
+				if Settings.Rage.AntiAim.Enabled then count = count + 1 end
+				if Settings.Rage.CFrame.Enabled then count = count + 1 end
+				activeLabel.Text = "Active: " .. count
+				activeLabel.TextColor3 = count > 0 and Color3.fromRGB(160, 160, 255) or Color3.fromRGB(100, 100, 100)
+			end
+			RunService.Heartbeat:Wait()
+		end
+	end)
+
+	-- Adjust body size to account for status bar
+	body.Size = UDim2.new(1, -TAB_PANEL_W, 1, -TOPBAR_H - STATUS_H)
+end
+
+-- ═══════════════════════════════════════════════════════════════
+-- UI ENHANCEMENT: ENHANCED COLOR PICKER RGB SLIDERS
+-- ═══════════════════════════════════════════════════════════════
+do
+	-- Enhance existing color picker sliders with gradient tracks and glow
+	-- The sliders are already created (sliderR, sliderG, sliderB) at line ~1027
+	-- We enhance them by adding gradient visuals to the slider backgrounds
+	
+	for _, child in ipairs(cp:GetChildren()) do
+		if child:IsA("Frame") and child.BackgroundTransparency == 1 then
+			-- Find slider background frames within the color picker
+			for _, sub in ipairs(child:GetChildren()) do
+				if sub:IsA("Frame") and sub.BackgroundColor3 == Color3.fromRGB(20, 20, 20) and sub.Size.Y.Offset == 4 then
+					-- This is a slider track — add gradient and glow
+					sub.Size = UDim2.new(sub.Size.X.Scale, sub.Size.X.Offset, 0, 6)
+					
+					-- Add gradient track showing the color range
+					local trackGrad = Instance.new("UIGradient")
+					trackGrad.Color = ColorSequence.new{
+						ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 20)),
+						ColorSequenceKeypoint.new(1, Color3.fromRGB(60, 60, 60))
+					}
+					trackGrad.Parent = sub
+					
+					-- Glow effect on the track
+					local trackStroke = Instance.new("UIStroke")
+					trackStroke.Color = Color3.fromRGB(80, 80, 80)
+					trackStroke.Thickness = 1
+					trackStroke.Transparency = 0.6
+					trackStroke.Parent = sub
+
+					-- Enhance knob
+					for _, knobChild in ipairs(sub:GetChildren()) do
+						if knobChild:IsA("Frame") and knobChild.Size.X.Offset == 10 then
+							knobChild.Size = UDim2.new(0, 12, 0, 14)
+							knobChild.Position = UDim2.new(knobChild.Position.X.Scale, -6, 0.5, -7)
+							
+							local knobGlow = Instance.new("UIStroke")
+							knobGlow.Color = Color3.fromRGB(200, 200, 200)
+							knobGlow.Thickness = 1.5
+							knobGlow.Transparency = 0.3
+							knobGlow.Parent = knobChild
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	-- Add hex input to color picker
+	local cpHexInput = Instance.new("TextBox")
+	cpHexInput.Size = UDim2.new(0, 80, 0, 22)
+	cpHexInput.Position = UDim2.new(0.5, -40, 0, 185)
+	cpHexInput.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+	cpHexInput.Text = ""
+	cpHexInput.PlaceholderText = "#FFFFFF"
+	cpHexInput.PlaceholderColor3 = Color3.fromRGB(60, 60, 60)
+	cpHexInput.Font = Enum.Font.Code
+	cpHexInput.TextSize = 11
+	cpHexInput.TextColor3 = Color3.fromRGB(200, 200, 200)
+	cpHexInput.ClearTextOnFocus = true
+	cpHexInput.TextXAlignment = Enum.TextXAlignment.Center
+	cpHexInput.ZIndex = 502
+	cpHexInput.Parent = cp
+	Instance.new("UICorner", cpHexInput).CornerRadius = UDim.new(0, 4)
+	local cpHexStroke = Instance.new("UIStroke")
+	cpHexStroke.Color = Color3.fromRGB(60, 60, 60)
+	cpHexStroke.Thickness = 1
+	cpHexStroke.Parent = cpHexInput
+
+	cpHexInput.FocusLost:Connect(function()
+		local raw = cpHexInput.Text:gsub("#", ""):gsub("%s", ""):upper()
+		if #raw == 6 and raw:match("^%x+$") then
+			local r = tonumber(raw:sub(1,2), 16)
+			local g = tonumber(raw:sub(3,4), 16)
+			local b = tonumber(raw:sub(5,6), 16)
+			sliderR.SetValue(r)
+			sliderG.SetValue(g)
+			sliderB.SetValue(b)
+			cpHexInput.Text = ""
+			cpHexInput.PlaceholderText = "#" .. raw
+			task.spawn(function() cpHexStroke.Color = Color3.fromRGB(200, 200, 200); task.wait(0.1); cpHexStroke.Color = Color3.fromRGB(60, 60, 60) end)
+		else
+			cpHexInput.Text = ""
+			if #raw > 0 then
+				task.spawn(function() cpHexStroke.Color = Color3.fromRGB(255, 80, 80); task.wait(0.3); cpHexStroke.Color = Color3.fromRGB(60, 60, 60) end)
+			end
+		end
+	end)
+
+	-- Update hex display when sliders change
+	local origCallback = activeCallback
+	task.spawn(function()
+		while cp.Parent do
+			if pickerActive then
+				local hex = string.format("#%02X%02X%02X", sliderR.GetValue(), sliderG.GetValue(), sliderB.GetValue())
+				if cpHexInput.Text == "" then
+					cpHexInput.PlaceholderText = hex
+				end
+			end
+			task.wait(0.1)
+		end
+	end)
+
+	-- Resize color picker to fit hex input
+	cp.Size = UDim2.new(0, 240, 0, 220)
+	cp.Position = UDim2.new(0.5, -120, 0.5, -110)
+end
+
+-- ═══════════════════════════════════════════════════════════════
+-- UI ENHANCEMENT: TOOLTIP SYSTEM
+-- ═══════════════════════════════════════════════════════════════
+do
+	local tooltipFrame = Instance.new("Frame")
+	tooltipFrame.Name = "Tooltip"
+	tooltipFrame.Size = UDim2.new(0, 180, 0, 28)
+	tooltipFrame.BackgroundColor3 = Color3.fromRGB(5, 5, 5)
+	tooltipFrame.BorderSizePixel = 0
+	tooltipFrame.ZIndex = 600
+	tooltipFrame.Visible = false
+	tooltipFrame.Parent = frame
+	Instance.new("UICorner", tooltipFrame).CornerRadius = UDim.new(0, 6)
+	local ttStroke = Instance.new("UIStroke")
+	ttStroke.Color = Color3.fromRGB(80, 80, 80)
+	ttStroke.Thickness = 1
+	ttStroke.Parent = tooltipFrame
+
+	local tooltipLabel = Instance.new("TextLabel")
+	tooltipLabel.BackgroundTransparency = 1
+	tooltipLabel.Size = UDim2.new(1, -12, 1, 0)
+	tooltipLabel.Position = UDim2.new(0, 6, 0, 0)
+	tooltipLabel.Text = ""
+	tooltipLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+	tooltipLabel.Font = Enum.Font.GothamMedium
+	tooltipLabel.TextSize = 11
+	tooltipLabel.TextXAlignment = Enum.TextXAlignment.Left
+	tooltipLabel.TextWrapped = true
+	tooltipLabel.ZIndex = 601
+	tooltipLabel.Parent = tooltipFrame
+
+	local tooltipTimer = nil
+	local tooltipTarget = nil
+
+	local tooltipData = {
+		-- Aim
+		["Smoothness"] = "Lower = snappier aim, Higher = smoother tracking",
+		["Prediction"] = "Leads shots ahead of moving targets",
+		["Prediction Value"] = "How far ahead to predict (seconds)",
+		["Wall Check"] = "Only lock/aim if target is visible",
+		["Sticky Aim"] = "Toggle-style: click once to lock, click again to unlock",
+		["Auto Lock"] = "Auto-acquire new target when current dies",
+		["Shake"] = "Adds random jitter to look more human",
+		["Show FOV Circle"] = "Display the aim FOV radius on screen",
+		["FOV Spin"] = "Animates the FOV circle with rotation",
+		["Team Check"] = "Ignore teammates from targeting/ESP",
+		-- Visuals
+		["Fill"] = "Fill the ESP box with a translucent color",
+		["Outline"] = "Draw outline around the ESP box",
+		["Show Hidden"] = "Show chams through walls (X-ray)",
+		["Gradient Bar"] = "Color health bar green→yellow→red",
+		["Show Percentage"] = "Display health as percentage text",
+		-- Rage
+		["Auto Shoot"] = "Automatically fires at kill aura target",
+		["Visualize"] = "Show expanded hitbox as a glowing part",
+		["Spectate"] = "Camera stays still while body moves",
+		["Noclip"] = "Walk through walls (CFrame mode)",
+	}
+
+	-- Global hover detection for tooltips
+	task.spawn(function()
+		while frame.Parent do
+			local mousePos = UserInputService:GetMouseLocation()
+			local found = false
+
+			-- Scan visible tab for hovering over setting labels
+			local activeTab = aimTab.Visible and aimTab or visTab.Visible and visTab or rageTab
+			if activeTab then
+				for _, section in ipairs(activeTab:GetChildren()) do
+					if section:IsA("Frame") then
+						local settingsFrame = section:FindFirstChild("Settings")
+						if settingsFrame then
+							for _, control in ipairs(settingsFrame:GetDescendants()) do
+								if control:IsA("TextLabel") and control.TextSize <= 13 and control.Text ~= "" and tooltipData[control.Text] then
+									local pos = control.AbsolutePosition
+									local size = control.AbsoluteSize
+									if mousePos.X >= pos.X and mousePos.X <= pos.X + size.X and mousePos.Y >= pos.Y and mousePos.Y <= pos.Y + size.Y then
+										if tooltipTarget ~= control then
+											tooltipTarget = control
+											tooltipTimer = tick()
+										end
+										if tick() - tooltipTimer > 0.6 then
+											tooltipLabel.Text = tooltipData[control.Text]
+											local tw = math.min(220, #tooltipData[control.Text] * 6 + 20)
+											tooltipFrame.Size = UDim2.new(0, tw, 0, 28)
+											-- Position below mouse
+											local framePos = frame.AbsolutePosition
+											tooltipFrame.Position = UDim2.new(0, mousePos.X - framePos.X + 10, 0, mousePos.Y - framePos.Y + 16)
+											tooltipFrame.Visible = true
+										end
+										found = true
+										break
+									end
+								end
+							end
+						end
+					end
+					if found then break end
+				end
+			end
+
+			if not found then
+				tooltipTarget = nil
+				tooltipTimer = nil
+				tooltipFrame.Visible = false
+			end
+			task.wait(0.05)
+		end
+	end)
+end
 
 -- ═══════════════════════════════════════════════════════════════
 -- TAB SWITCHING (3 tabs)
