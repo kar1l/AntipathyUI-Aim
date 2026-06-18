@@ -2250,21 +2250,35 @@ do
 
 		local glitchActive = false
 		local glitchConn = nil
+		local updateTimer = 0
+		local targetColor = Color3.fromRGB(255, 255, 255)
+		local targetTransparency = 0.3
+		local targetThickness = 1.5
 
 		section.MouseEnter:Connect(function()
 			glitchActive = true
 			glowStroke.Transparency = 0.3
 			if glitchConn then return end
-			glitchConn = RunService.Heartbeat:Connect(function()
+			updateTimer = 0
+			glitchConn = RunService.Heartbeat:Connect(function(dt)
 				if not glitchActive then
 					glowStroke.Transparency = 1
 					if glitchConn then glitchConn:Disconnect(); glitchConn = nil end
 					return
 				end
-				-- Rapid random RGB color shift like the floating footer text
-				glowStroke.Color = Color3.fromRGB(math.random(100,255), math.random(100,255), math.random(100,255))
-				glowStroke.Transparency = 0.2 + math.random() * 0.3
-				glowStroke.Thickness = 1 + math.random() * 1.5
+				
+				updateTimer = updateTimer - dt
+				if updateTimer <= 0 then
+					updateTimer = 0.2 + math.random() * 0.2
+					targetColor = Color3.fromRGB(math.random(100, 255), math.random(100, 255), math.random(100, 255))
+					targetTransparency = 0.25 + math.random() * 0.25
+					targetThickness = 1 + math.random() * 1.2
+				end
+
+				-- Smoothly interpolate towards the targets for a slower, high-end hover effect
+				glowStroke.Color = glowStroke.Color:Lerp(targetColor, dt * 5)
+				glowStroke.Transparency = glowStroke.Transparency + (targetTransparency - glowStroke.Transparency) * dt * 5
+				glowStroke.Thickness = glowStroke.Thickness + (targetThickness - glowStroke.Thickness) * dt * 5
 			end)
 		end)
 		section.MouseLeave:Connect(function()
@@ -2330,12 +2344,12 @@ do
 			wingR = wingR,
 			x = body.Position.X.Scale,
 			y = body.Position.Y.Scale,
-			vx = (math.random() - 0.5) * 0.08,
-			vy = (math.random() - 0.5) * 0.04,
+			vx = (math.random() - 0.5) * 0.02,
+			vy = (math.random() - 0.5) * 0.01,
 			phase = math.random() * math.pi * 2,
 			wingPhase = math.random() * math.pi * 2,
-			flutterSpeed = 8 + math.random() * 6,
-			dirChangeTimer = math.random() * 3,
+			flutterSpeed = 3.5 + math.random() * 3.5,
+			dirChangeTimer = math.random() * 4,
 		})
 	end
 
@@ -2343,32 +2357,34 @@ do
 		while frame.Parent do
 			local dt = RunService.Heartbeat:Wait()
 			for _, bf in ipairs(butterflies) do
-				bf.phase = bf.phase + dt
+				bf.phase = bf.phase + dt * 0.8
 				bf.wingPhase = bf.wingPhase + dt * bf.flutterSpeed
 				bf.dirChangeTimer = bf.dirChangeTimer - dt
 
-				-- Change direction randomly (erratic butterfly flutter)
+				-- Change direction randomly (very gentle butterfly flutter)
 				if bf.dirChangeTimer <= 0 then
-					bf.vx = (math.random() - 0.5) * 0.12
-					bf.vy = (math.random() - 0.5) * 0.06
-					bf.dirChangeTimer = 0.5 + math.random() * 2.5
+					bf.vx = (math.random() - 0.5) * 0.03
+					bf.vy = (math.random() - 0.5) * 0.015
+					bf.dirChangeTimer = 1.0 + math.random() * 3.0
 				end
 
-				-- Figure-8 flutter path overlay
-				local flutterX = math.sin(bf.phase * 1.3) * 0.008
-				local flutterY = math.sin(bf.phase * 2.1) * math.cos(bf.phase * 0.7) * 0.005
+				-- Figure-8 flutter path overlay (adds natural swaying oscillation)
+				local flutterX = math.sin(bf.phase * 1.5) * 0.006
+				local flutterY = math.sin(bf.phase * 2.5) * math.cos(bf.phase * 0.8) * 0.004
 
-				bf.x = bf.x + bf.vx * dt + flutterX
-				bf.y = bf.y + bf.vy * dt + flutterY
+				-- Update base coordinates linearly using velocity
+				bf.x = bf.x + bf.vx * dt
+				bf.y = bf.y + bf.vy * dt
 
 				-- Wrap around
-				if bf.x > 1.02 then bf.x = -0.03 elseif bf.x < -0.03 then bf.x = 1.02 end
+				if bf.x > 1.03 then bf.x = -0.03 elseif bf.x < -0.03 then bf.x = 1.03 end
 				if bf.y > 0.98 then bf.y = 0.08 elseif bf.y < 0.06 then bf.y = 0.98 end
 
-				bf.body.Position = UDim2.new(bf.x, 0, bf.y, 0)
-				bf.body.Rotation = math.sin(bf.phase * 1.5) * 25
+				-- Visual position includes the non-cumulative figure-8 flutter overlay
+				bf.body.Position = UDim2.new(bf.x + flutterX, 0, bf.y + flutterY, 0)
+				bf.body.Rotation = math.sin(bf.phase * 1.5) * 20
 
-				-- Wing flap animation (rapid size oscillation)
+				-- Wing flap animation (natural slow size oscillation)
 				local wingFlap = math.abs(math.sin(bf.wingPhase))
 				local wingH = math.floor(1 + wingFlap * 3)
 				bf.wingL.Size = UDim2.new(0, 4, 0, wingH)
