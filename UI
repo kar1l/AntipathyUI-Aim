@@ -1,12 +1,3 @@
---[[
-    Antipathy — Aim, Visuals & Rage (v5)
-    UI-only file. All functional logic is in AntipathyFunctions.lua
-    Load this from GitHub or locally — it returns the Settings table.
-
-    NEW: Rage tab, team check, shake/jitter, FOV spin, trail types,
-    avatar-size ESP, keybinds for all features, auto-lock toggle.
-]]
-
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -380,6 +371,21 @@ end
 local function color3ToHex(color)
 	return string.format("%02X%02X%02X", math.clamp(math.floor(color.R*255),0,255), math.clamp(math.floor(color.G*255),0,255), math.clamp(math.floor(color.B*255),0,255))
 end
+
+-- ═══════════════════════════════════════════════════════════════
+-- SHARED SLIDER INPUT SYSTEM (single global connection instead of per-slider)
+-- ═══════════════════════════════════════════════════════════════
+local _activeSliderUpdate = nil -- currently dragged slider's update function
+UserInputService.InputChanged:Connect(function(input)
+	if _activeSliderUpdate and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		_activeSliderUpdate(input.Position.X)
+	end
+end)
+UserInputService.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		_activeSliderUpdate = nil
+	end
+end)
 
 -- Corner frame helper: draws 8 corner lines around a frame
 local function addCornerBorder(parent, color, thickness, cornerLen)
@@ -1016,16 +1022,12 @@ local function createCPSlider(name, yPos, color, maxVal)
 		if pickerActive and activeCallback then activeCallback() end
 	end
 
-	sliderBtn.MouseButton1Down:Connect(function() sliding = true end)
-	UserInputService.InputChanged:Connect(function(input)
-		if sliding and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+	sliderBtn.MouseButton1Down:Connect(function()
+		_activeSliderUpdate = function(px)
 			local ap = sliderBg.AbsolutePosition.X; local as = sliderBg.AbsoluteSize.X
 			if as == 0 then return end
-			updateVal(math.clamp((input.Position.X - ap) / as, 0, 1) * maxVal)
+			updateVal(math.clamp((px - ap) / as, 0, 1) * maxVal)
 		end
-	end)
-	UserInputService.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 and sliding then sliding = false end
 	end)
 
 	return { GetValue = function() return val end, SetValue = function(nv) updateVal(nv) end }
@@ -1375,16 +1377,8 @@ local function createSlider(text, order, parent, min, max, tbl, key, step, suffi
 		if tbl then tbl[key] = value end
 	end
 	
-	ib.MouseButton1Down:Connect(function() sliding = true end)
-	UserInputService.InputChanged:Connect(function(input)
-		if sliding and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-			upd(input.Position.X)
-		end
-	end)
-	UserInputService.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 and sliding then
-			sliding = false
-		end
+	ib.MouseButton1Down:Connect(function()
+		_activeSliderUpdate = function(px) upd(px) end
 	end)
 end
 
@@ -1394,7 +1388,7 @@ local function createDropdown(text, order, parent, options, tbl, key, wScale, wO
 	local expanded = false
 	wScale = wScale or 1
 	wOff = wOff or 0
-	local c = Instance.new("Frame"); c.LayoutOrder = order; c.Size = UDim2.new(wScale, wOff, 0, 30); c.BackgroundTransparency = 1; c.ClipsDescendants = false; c.ZIndex = 15; c.Parent = parent
+	local c = Instance.new("Frame"); c.LayoutOrder = order; c.Size = UDim2.new(wScale, wOff, 0, 30); c.BackgroundTransparency = 1; c.ClipsDescendants = true; c.ZIndex = 15; c.Parent = parent
 	c:SetAttribute("Expanded", false)
 
 	local db = Instance.new("TextButton"); db.Size = UDim2.new(1, 0, 0, 28)
@@ -1413,50 +1407,30 @@ local function createDropdown(text, order, parent, options, tbl, key, wScale, wO
 	arrowLbl.Text = "▼"; arrowLbl.TextColor3 = Color3.fromRGB(110,110,115)
 	arrowLbl.Font = Enum.Font.GothamBold; arrowLbl.TextSize = 9; arrowLbl.ZIndex = 17; arrowLbl.Parent = db
 
+	-- Options container (inline, below button)
 	local dl = Instance.new("Frame"); dl.Size = UDim2.new(1, 0, 0, 0)
-	dl.Position = UDim2.new(0, 0, 0, 32); dl.BackgroundColor3 = Color3.fromRGB(12,12,14)
-	dl.BorderSizePixel = 0; dl.Visible = false; dl.ClipsDescendants = true; dl.ZIndex = 500; dl.Parent = c
+	dl.Position = UDim2.new(0, 0, 0, 30); dl.BackgroundColor3 = Color3.fromRGB(12,12,14)
+	dl.BorderSizePixel = 0; dl.ClipsDescendants = true; dl.ZIndex = 16; dl.Parent = c
 	dl.Name = "DropdownList"
 	Instance.new("UICorner", dl).CornerRadius = UDim.new(0, 6)
 	Instance.new("UIStroke", dl).Color = Color3.fromRGB(55,55,60)
 	local dlLayout = Instance.new("UIListLayout"); dlLayout.Padding = UDim.new(0, 2); dlLayout.SortOrder = Enum.SortOrder.LayoutOrder; dlLayout.Parent = dl
 	local dlPad = Instance.new("UIPadding"); dlPad.PaddingTop = UDim.new(0, 3); dlPad.PaddingLeft = UDim.new(0, 3); dlPad.PaddingRight = UDim.new(0, 3); dlPad.Parent = dl
 
+	local expandedH = #options * 26 + 8
+
 	local function collapse()
 		expanded = false; arrowLbl.Text = "▼"
 		c:SetAttribute("Expanded", false)
 		TweenService:Create(dl, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Size = UDim2.new(1, 0, 0, 0)}):Play()
+		TweenService:Create(c, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Size = UDim2.new(wScale, wOff, 0, 30)}):Play()
 		TweenService:Create(ds, TweenInfo.new(0.12), {Color = Color3.fromRGB(55,55,60)}):Play()
-		c.Size = UDim2.new(wScale, wOff, 0, 30)
-
-		local sectionFrame = nil
-		if parent:IsA("Frame") and parent.Name == "Settings" and parent.Parent and parent.Parent:IsA("Frame") then
-			sectionFrame = parent.Parent
-		end
-		if sectionFrame then
-			local anyExpanded = false
-			for _, child in ipairs(parent:GetChildren()) do
-				if child:GetAttribute("Expanded") == true then
-					anyExpanded = true
-					break
-				end
-			end
-			if not anyExpanded then
-				sectionFrame.ZIndex = 10
-				sectionFrame.ClipsDescendants = true
-			end
-		end
-
-		task.delay(0.12, function()
-			dl.Visible = false
-			c.ZIndex = 15
-		end)
 	end
 
 	for i, opt in ipairs(options) do
 		local ob = Instance.new("TextButton"); ob.LayoutOrder = i; ob.Size = UDim2.new(1, 0, 0, 24)
 		ob.BackgroundColor3 = Color3.fromRGB(20,20,22); ob.Text = opt; ob.Font = Enum.Font.GothamMedium; ob.TextSize = 12
-		ob.TextColor3 = Color3.fromRGB(190,190,195); ob.AutoButtonColor = false; ob.ZIndex = 501; ob.Parent = dl
+		ob.TextColor3 = Color3.fromRGB(190,190,195); ob.AutoButtonColor = false; ob.ZIndex = 17; ob.Parent = dl
 		Instance.new("UICorner", ob).CornerRadius = UDim.new(0, 4)
 		ob.MouseEnter:Connect(function() TweenService:Create(ob, TweenInfo.new(0.08), {BackgroundColor3 = Color3.fromRGB(40,40,44), TextColor3 = Color3.fromRGB(255,255,255)}):Play() end)
 		ob.MouseLeave:Connect(function() TweenService:Create(ob, TweenInfo.new(0.08), {BackgroundColor3 = Color3.fromRGB(20,20,22), TextColor3 = Color3.fromRGB(190,190,195)}):Play() end)
@@ -1472,19 +1446,11 @@ local function createDropdown(text, order, parent, options, tbl, key, wScale, wO
 		expanded = not expanded
 		if expanded then
 			c:SetAttribute("Expanded", true)
-			c.ZIndex = 50
-			local sectionFrame = nil
-			if parent:IsA("Frame") and parent.Name == "Settings" and parent.Parent and parent.Parent:IsA("Frame") then
-				sectionFrame = parent.Parent
-			end
-			if sectionFrame then
-				sectionFrame.ZIndex = 30
-				sectionFrame.ClipsDescendants = false
-			end
-			dl.Visible = true; dl.Size = UDim2.new(1, 0, 0, 0); arrowLbl.Text = "▲"
-			TweenService:Create(dl, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, #options * 26 + 8)}):Play()
+			dl.Size = UDim2.new(1, 0, 0, 0)
+			arrowLbl.Text = "▲"
+			TweenService:Create(dl, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, expandedH)}):Play()
+			TweenService:Create(c, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(wScale, wOff, 0, 30 + expandedH + 4)}):Play()
 			TweenService:Create(ds, TweenInfo.new(0.1), {Color = Color3.fromRGB(160,160,165)}):Play()
-			c.Size = UDim2.new(wScale, wOff, 0, 30 + #options * 26 + 12)
 		else
 			collapse()
 		end
@@ -1614,31 +1580,24 @@ local function createHexColor(text, order, parent, tbl, key, wScale, wOff)
 		lastClick = now
 	end)
 
-	-- Middle click (scrollwheel click): toggle rainbow
-	sw.MouseButton2Click:Connect(function() end) -- needed for input routing
-	UserInputService.InputBegan:Connect(function(input)
+	-- Middle click (scrollwheel click): toggle rainbow — use InputBegan on the swatch directly
+	sw.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton3 then
-			-- Check if mouse is over the swatch
-			local mousePos = UserInputService:GetMouseLocation()
-			local swPos = sw.AbsolutePosition
-			local swSize = sw.AbsoluteSize
-			if mousePos.X >= swPos.X and mousePos.X <= swPos.X + swSize.X and mousePos.Y >= swPos.Y and mousePos.Y <= swPos.Y + swSize.Y then
-				if rainbowActive then
-					rainbowActive = false
-					if rainbowConn then rainbowConn:Disconnect(); rainbowConn = nil end
-				else
-					rainbowActive = true
-					cp.Visible = false; pickerActive = false
-					rainbowConn = RunService.Heartbeat:Connect(function()
-						if not rainbowActive then return end
-						local hue = (tick() * 0.5) % 1
-						local c3 = Color3.fromHSV(hue, 1, 1)
-						sw.BackgroundColor3 = c3
-						local hex = color3ToHex(c3)
-						if tbl then tbl[key] = hex end
-						hb.PlaceholderText = "#"..hex; hb.Text = ""
-					end)
-				end
+			if rainbowActive then
+				rainbowActive = false
+				if rainbowConn then rainbowConn:Disconnect(); rainbowConn = nil end
+			else
+				rainbowActive = true
+				cp.Visible = false; pickerActive = false
+				rainbowConn = RunService.Heartbeat:Connect(function()
+					if not rainbowActive then return end
+					local hue = (tick() * 0.5) % 1
+					local c3 = Color3.fromHSV(hue, 1, 1)
+					sw.BackgroundColor3 = c3
+					local hex = color3ToHex(c3)
+					if tbl then tbl[key] = hex end
+					hb.PlaceholderText = "#"..hex; hb.Text = ""
+				end)
 			end
 		end
 	end)
