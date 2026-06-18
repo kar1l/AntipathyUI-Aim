@@ -1427,6 +1427,29 @@ local function createDropdown(text, order, parent, options, tbl, key, wScale, wO
 	local dlPad = Instance.new("UIPadding"); dlPad.PaddingTop = UDim.new(0, 3); dlPad.PaddingLeft = UDim.new(0, 3); dlPad.PaddingRight = UDim.new(0, 3); dlPad.Parent = dl
 
 	local expandedH = #options * 26 + 8
+	c:SetAttribute("ExpandedH", expandedH)
+	
+	if parent:FindFirstChildOfClass("UIListLayout") and parent:FindFirstChildOfClass("UIListLayout").FillDirection == Enum.FillDirection.Horizontal then
+		if not parent:GetAttribute("DefaultHeight") then
+			parent:SetAttribute("DefaultHeight", parent.Size.Y.Offset)
+		end
+	end
+
+	local function updateRowHeight(isExpanding)
+		local isRow = parent:FindFirstChildOfClass("UIListLayout") and parent:FindFirstChildOfClass("UIListLayout").FillDirection == Enum.FillDirection.Horizontal
+		if not isRow then return end
+		local maxH = parent:GetAttribute("DefaultHeight") or 30
+		for _, child in ipairs(parent:GetChildren()) do
+			if child:IsA("Frame") and child:GetAttribute("Expanded") then
+				local eh = child:GetAttribute("ExpandedH") or 0
+				local h = 30 + eh + 4
+				if h > maxH then maxH = h end
+			end
+		end
+		local tweenTime = isExpanding and 0.15 or 0.12
+		local easingDir = isExpanding and Enum.EasingDirection.Out or Enum.EasingDirection.In
+		TweenService:Create(parent, TweenInfo.new(tweenTime, Enum.EasingStyle.Quad, easingDir), {Size = UDim2.new(1, 0, 0, maxH)}):Play()
+	end
 
 	local function collapse()
 		expanded = false; arrowLbl.Text = "▼"
@@ -1434,6 +1457,7 @@ local function createDropdown(text, order, parent, options, tbl, key, wScale, wO
 		TweenService:Create(dl, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Size = UDim2.new(1, 0, 0, 0)}):Play()
 		TweenService:Create(c, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Size = UDim2.new(wScale, wOff, 0, 30)}):Play()
 		TweenService:Create(ds, TweenInfo.new(0.12), {Color = Color3.fromRGB(55,55,60)}):Play()
+		updateRowHeight(false)
 	end
 
 	for i, opt in ipairs(options) do
@@ -1460,6 +1484,7 @@ local function createDropdown(text, order, parent, options, tbl, key, wScale, wO
 			TweenService:Create(dl, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, expandedH)}):Play()
 			TweenService:Create(c, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(wScale, wOff, 0, 30 + expandedH + 4)}):Play()
 			TweenService:Create(ds, TweenInfo.new(0.1), {Color = Color3.fromRGB(160,160,165)}):Play()
+			updateRowHeight(true)
 		else
 			collapse()
 		end
