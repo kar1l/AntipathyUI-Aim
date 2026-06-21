@@ -196,7 +196,6 @@ local Settings = {
 			Keybind = "...",
 			Speed = 16,
 			Mode = "Normal",
-			FlyHeight = 0,
 		},
 	},
 }
@@ -1889,7 +1888,7 @@ createSlider("Outline Thickness", ssn(), silentSettings, 1, 5, Settings.Aim.Sile
 local sr6 = createRowContainer(ssn(), silentSettings, 40)
 createSwitch("FOV Spin", 1, sr6, Settings.Aim.SilentAim, "FOVSpin", nil, 0.5, -4)
 createSlider("Spin Speed", 2, sr6, 1, 20, Settings.Aim.SilentAim, "FOVSpinSpeed", 1, "", 0.5, -4, true)
-createDropdown("Spin Style", ssn(), silentSettings, {"Smooth", "Bouncy", "Elastic"}, Settings.Aim.SilentAim, "FOVSpinStyle")
+createDropdown("Spin Style", ssn(), silentSettings, {"Smooth", "Bouncy", "Elastic", "Pulse", "Stutter", "Reverse", "Wobble", "Zigzag"}, Settings.Aim.SilentAim, "FOVSpinStyle")
 createSwitch("Wall Check", ssn(), silentSettings, Settings.Aim.SilentAim, "WallCheck")
 
 -- Triggerbot section
@@ -1945,13 +1944,7 @@ local chr1 = createRowContainer(chn(), chamsSettings, 30)
 createDropdown("Depth Mode", 1, chr1, {"AlwaysOnTop", "Occluded"}, Settings.Visuals.Chams, "DepthMode", 0.5, -4)
 createDropdown("Color Mode", 2, chr1, {"Normal", "Multi Color"}, Settings.Visuals.Chams, "ColorMode", 0.5, -4)
 
--- Trail section
-local trailSettings, trailSection = createSection("Trail", nil, vn(), visTab, Settings.Visuals.Trail, "Enabled")
-local tro = 0; local function trn() tro = tro + 1; return tro end
-createDropdown("Type", trn(), trailSettings, {"Normal", "Chams Trail", "Bubble"}, Settings.Visuals.Trail, "Type")
-createSlider("Lifetime", trn(), trailSettings, 0, 5, Settings.Visuals.Trail, "Lifetime", 0.1, "s")
-createHexColor("Trail Color", trn(), trailSettings, Settings.Visuals.Trail, "Color")
-createSlider("Transparency", trn(), trailSettings, 0, 1, Settings.Visuals.Trail, "Transparency", 0.05)
+
 
 
 
@@ -2075,7 +2068,8 @@ createKeybindButton("Keybind", aan(), antiAimSettings, Settings.Rage.AntiAim, "K
 end)
 createDropdown("Mode", aan(), antiAimSettings, {"Legit", "Blatant"}, Settings.Rage.AntiAim, "Mode")
 local aar1 = createRowContainer(aan(), antiAimSettings, 40)
-createSlider("Range", 1, aar1, 10, 360, Settings.Rage.AntiAim, "Range", 1, "", 0.5, -4, true)
+createSlider("Range", 1, aar1, 10, 500, Settings.Rage.AntiAim, "Range", 1, "", 0.5, -4, true)
+createSlider("Speed", 2, aar1, 1, 50, Settings.Rage.AntiAim, "Speed", 1, "", 0.5, -4, true)
 createSlider("Speed", 2, aar1, 1, 50, Settings.Rage.AntiAim, "Speed", 1, "", 0.5, -4, true)
 createSwitch("Spectate", aan(), antiAimSettings, Settings.Rage.AntiAim, "Spectate")
 
@@ -2087,262 +2081,18 @@ createKeybindButton("Keybind", cfn(), cframeSettings, Settings.Rage.CFrame, "Key
 end)
 createDropdown("Mode", cfn(), cframeSettings, {"Normal", "Noclip"}, Settings.Rage.CFrame, "Mode")
 createSlider("Speed", cfn(), cframeSettings, 1, 200, Settings.Rage.CFrame, "Speed")
-createSlider("Fly Height", cfn(), cframeSettings, -50, 50, Settings.Rage.CFrame, "FlyHeight")
 
 local rf = Instance.new("Frame"); rf.LayoutOrder = rn(); rf.BackgroundTransparency = 1; rf.Size = UDim2.new(1,0,0,8); rf.Parent = rageTab
 end
 
--- ═══════════════════════════════════════════════════════════════
--- COLLAPSIBLE AVATAR PREVIEW SECTION (inline in visuals tab)
--- ═══════════════════════════════════════════════════════════════
-do
-local previewSettings, previewSection = createSection("Settings Preview", nil, vn(), visTab, Settings.Visuals, "AvatarPreview")
+-- (Settings Preview section removed)
 
-local previewContainer = Instance.new("Frame")
-previewContainer.Name = "PreviewContainer"
-previewContainer.Size = UDim2.new(1, -16, 0, 140)
-previewContainer.Position = UDim2.new(0, 4, 0, 4)
-previewContainer.BackgroundColor3 = Color3.fromRGB(12, 12, 14)
-previewContainer.BackgroundTransparency = 0.4
-previewContainer.BorderSizePixel = 0
-previewContainer.ZIndex = 40
-previewContainer.Parent = previewSettings
 
-addCornerBorder(previewContainer, Color3.fromRGB(80, 80, 80), 1, 8)
 
-local avatarImage = Instance.new("ImageLabel")
-avatarImage.Name = "AvatarImage"
-avatarImage.Size = UDim2.new(0, 100, 0, 100)
-avatarImage.Position = UDim2.new(0.5, -50, 0.5, -50)
-avatarImage.BackgroundTransparency = 1
-avatarImage.ZIndex = 41
-avatarImage.Image = ""
-avatarImage.Parent = previewContainer
 
-local avNameLabel = Instance.new("TextLabel")
-avNameLabel.Name = "NameLabel"
-avNameLabel.Size = UDim2.new(1, 0, 0, 14)
-avNameLabel.Position = UDim2.new(0, 0, 0.5, -64)
-avNameLabel.BackgroundTransparency = 1
-avNameLabel.Text = "Player"
-avNameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-avNameLabel.Font = Enum.Font.GothamMedium
-avNameLabel.TextSize = 11
-avNameLabel.ZIndex = 43
-avNameLabel.Visible = false
-avNameLabel.Parent = previewContainer
 
-local avHealthBar = Instance.new("Frame")
-avHealthBar.Name = "HealthBar"
-avHealthBar.Size = UDim2.new(0, 3, 0, 100)
-avHealthBar.Position = UDim2.new(0.5, -58, 0.5, -50)
-avHealthBar.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
-avHealthBar.BorderSizePixel = 0
-avHealthBar.ZIndex = 43
-avHealthBar.Visible = false
-avHealthBar.Parent = previewContainer
-Instance.new("UICorner", avHealthBar).CornerRadius = UDim.new(0, 1)
 
-local boxShapesFrame = Instance.new("Frame")
-boxShapesFrame.Name = "BoxShapes"
-boxShapesFrame.Size = UDim2.new(0, 104, 0, 104)
-boxShapesFrame.Position = UDim2.new(0.5, -52, 0.5, -52)
-boxShapesFrame.BackgroundTransparency = 1
-boxShapesFrame.ZIndex = 43
-boxShapesFrame.Parent = previewContainer
 
-local boxStroke = Instance.new("UIStroke")
-boxStroke.Thickness = 1
-boxStroke.Parent = boxShapesFrame
-
-local boxCorner = Instance.new("UICorner")
-boxCorner.Parent = boxShapesFrame
-
-local boxShapesFrameOutline = Instance.new("Frame")
-boxShapesFrameOutline.Name = "BoxShapesOutline"
-boxShapesFrameOutline.Size = UDim2.new(0, 106, 0, 106)
-boxShapesFrameOutline.Position = UDim2.new(0.5, -53, 0.5, -53)
-boxShapesFrameOutline.BackgroundTransparency = 1
-boxShapesFrameOutline.ZIndex = 42
-boxShapesFrameOutline.Parent = previewContainer
-
-local boxStrokeOutline = Instance.new("UIStroke")
-boxStrokeOutline.Thickness = 2
-boxStrokeOutline.Color = Color3.fromRGB(0, 0, 0)
-boxStrokeOutline.Parent = boxShapesFrameOutline
-
-local boxCornerOutline = Instance.new("UICorner")
-boxCornerOutline.Parent = boxShapesFrameOutline
-
-local boxCornerFrame = Instance.new("Frame")
-boxCornerFrame.Name = "BoxCorners"
-boxCornerFrame.Size = UDim2.new(0, 104, 0, 104)
-boxCornerFrame.Position = UDim2.new(0.5, -52, 0.5, -52)
-boxCornerFrame.BackgroundTransparency = 1
-boxCornerFrame.ZIndex = 43
-boxCornerFrame.Parent = previewContainer
-
-local boxCornerFrameOutline = Instance.new("Frame")
-boxCornerFrameOutline.Name = "BoxCornersOutline"
-boxCornerFrameOutline.Size = UDim2.new(0, 104, 0, 104)
-boxCornerFrameOutline.Position = UDim2.new(0.5, -52, 0.5, -52)
-boxCornerFrameOutline.BackgroundTransparency = 1
-boxCornerFrameOutline.ZIndex = 42
-boxCornerFrameOutline.Parent = previewContainer
-
-local function makePreviewLine(parent, pos, size, color, isOutline)
-	local l = Instance.new("Frame")
-	l.Position = pos
-	l.Size = size
-	l.BackgroundColor3 = color
-	l.BorderSizePixel = 0
-	l.ZIndex = isOutline and 42 or 43
-	l.Parent = parent
-	return l
-end
-
-local cLen = 12
-local lines = {
-	makePreviewLine(boxCornerFrame, UDim2.new(0,0,0,0), UDim2.new(0,cLen,0,1), Color3.fromRGB(255,255,255), false),
-	makePreviewLine(boxCornerFrame, UDim2.new(0,0,0,0), UDim2.new(0,1,0,cLen), Color3.fromRGB(255,255,255), false),
-	makePreviewLine(boxCornerFrame, UDim2.new(1,-cLen,0,0), UDim2.new(0,cLen,0,1), Color3.fromRGB(255,255,255), false),
-	makePreviewLine(boxCornerFrame, UDim2.new(1,-1,0,0), UDim2.new(0,1,0,cLen), Color3.fromRGB(255,255,255), false),
-	makePreviewLine(boxCornerFrame, UDim2.new(0,0,1,-1), UDim2.new(0,cLen,0,1), Color3.fromRGB(255,255,255), false),
-	makePreviewLine(boxCornerFrame, UDim2.new(0,0,1,-cLen), UDim2.new(0,1,0,cLen), Color3.fromRGB(255,255,255), false),
-	makePreviewLine(boxCornerFrame, UDim2.new(1,-cLen,1,-1), UDim2.new(0,cLen,0,1), Color3.fromRGB(255,255,255), false),
-	makePreviewLine(boxCornerFrame, UDim2.new(1,-1,1,-cLen), UDim2.new(0,1,0,cLen), Color3.fromRGB(255,255,255), false),
-}
-
-local outlineLines = {
-	makePreviewLine(boxCornerFrameOutline, UDim2.new(0,-1,0,-1), UDim2.new(0,cLen+2,0,3), Color3.fromRGB(0,0,0), true),
-	makePreviewLine(boxCornerFrameOutline, UDim2.new(0,-1,0,-1), UDim2.new(0,3,0,cLen+2), Color3.fromRGB(0,0,0), true),
-	makePreviewLine(boxCornerFrameOutline, UDim2.new(1,-cLen-1,0,-1), UDim2.new(0,cLen+2,0,3), Color3.fromRGB(0,0,0), true),
-	makePreviewLine(boxCornerFrameOutline, UDim2.new(1,-2,0,-1), UDim2.new(0,3,0,cLen+2), Color3.fromRGB(0,0,0), true),
-	makePreviewLine(boxCornerFrameOutline, UDim2.new(0,-1,1,-2), UDim2.new(0,cLen+2,0,3), Color3.fromRGB(0,0,0), true),
-	makePreviewLine(boxCornerFrameOutline, UDim2.new(0,-1,1,-cLen-1), UDim2.new(0,3,0,cLen+2), Color3.fromRGB(0,0,0), true),
-	makePreviewLine(boxCornerFrameOutline, UDim2.new(1,-cLen-1,1,-2), UDim2.new(0,cLen+2,0,3), Color3.fromRGB(0,0,0), true),
-	makePreviewLine(boxCornerFrameOutline, UDim2.new(1,-2,1,-cLen-1), UDim2.new(0,3,0,cLen+2), Color3.fromRGB(0,0,0), true),
-}
-
-local function updatePreviewAvatar(img, lbl)
-	local playersList = Players:GetPlayers()
-	local selectedPlayer = nil
-	if #playersList > 1 then
-		local list = {}
-		for _, p in ipairs(playersList) do
-			if p ~= LocalPlayer then
-				table.insert(list, p)
-			end
-		end
-		if #list > 0 then
-			selectedPlayer = list[math.random(#list)]
-		end
-	end
-	if not selectedPlayer then
-		selectedPlayer = LocalPlayer or (playersList and playersList[1])
-	end
-	if selectedPlayer then
-		local userId = selectedPlayer.UserId
-		lbl.Text = selectedPlayer.DisplayName or selectedPlayer.Name
-		img.Image = "rbxthumb://type=Avatar&id=" .. userId .. "&w=180&h=180"
-	else
-		lbl.Text = "Player"
-		img.Image = "rbxthumb://type=Avatar&id=1&w=180&h=180"
-	end
-end
-
--- FIX: Preview works regardless of GlobalESP state
-task.spawn(function()
-	local lastState = false
-	while task.wait(0.25) do
-		local success, err = pcall(function()
-			if not previewSection or not previewSection.Parent then return end
-			local isExpanded = previewSection:GetAttribute("IsExpanded") == true
-
-			if isExpanded then
-				if not lastState then
-					updatePreviewAvatar(avatarImage, avNameLabel)
-				end
-				lastState = true
-
-				local vs = Settings.Visuals
-				-- Box ESP preview (no GlobalESP check)
-				local showBox = vs.BoxESP.Enabled
-				if showBox then
-					local style = vs.BoxESP.Style
-					local col = hexToColor3(vs.BoxESP.Color)
-					local thickness = vs.BoxESP.Thickness
-					local outlineCol = hexToColor3(vs.BoxESP.OutlineColor)
-					local showOutline = vs.BoxESP.Outline
-
-					if style == "Corners" then
-						boxShapesFrame.Visible = false
-						boxShapesFrameOutline.Visible = false
-						boxCornerFrame.Visible = true
-						boxCornerFrameOutline.Visible = showOutline
-						for _, l in ipairs(lines) do
-							l.BackgroundColor3 = col
-						end
-						for _, l in ipairs(outlineLines) do
-							l.BackgroundColor3 = outlineCol
-						end
-					else
-						boxCornerFrame.Visible = false
-						boxCornerFrameOutline.Visible = false
-						boxShapesFrame.Visible = true
-						boxShapesFrameOutline.Visible = showOutline
-						boxStroke.Color = col
-						boxStroke.Thickness = thickness
-						boxStrokeOutline.Color = outlineCol
-						boxStrokeOutline.Thickness = thickness + 2
-						boxShapesFrameOutline.Size = UDim2.new(0, 104 + thickness * 2, 0, 104 + thickness * 2)
-						boxShapesFrameOutline.Position = UDim2.new(0.5, -52 - thickness, 0.5, -52 - thickness)
-						if style == "Full" then
-							boxCorner.CornerRadius = UDim.new(0, 0)
-							boxCornerOutline.CornerRadius = UDim.new(0, 0)
-							boxShapesFrame.Rotation = 0
-							boxShapesFrameOutline.Rotation = 0
-						elseif style == "Oval" then
-							boxCorner.CornerRadius = UDim.new(0.5, 0)
-							boxCornerOutline.CornerRadius = UDim.new(0.5, 0)
-							boxShapesFrame.Rotation = 0
-							boxShapesFrameOutline.Rotation = 0
-						elseif style == "Diamond" then
-							boxCorner.CornerRadius = UDim.new(0, 0)
-							boxCornerOutline.CornerRadius = UDim.new(0, 0)
-							boxShapesFrame.Rotation = 45
-							boxShapesFrameOutline.Rotation = 45
-						end
-					end
-				else
-					boxCornerFrame.Visible = false
-					boxCornerFrameOutline.Visible = false
-					boxShapesFrame.Visible = false
-					boxShapesFrameOutline.Visible = false
-				end
-
-				-- Profile preview (no GlobalESP check)
-				avNameLabel.Visible = vs.ProfileESP.Enabled
-				if avNameLabel.Visible then avNameLabel.TextColor3 = hexToColor3(vs.ProfileESP.Color) end
-
-				-- Health bar preview (no GlobalESP check)
-				avHealthBar.Visible = vs.Health.Enabled
-
-				-- Chams preview (no GlobalESP check)
-				if vs.Chams.Enabled then
-					avatarImage.ImageColor3 = hexToColor3(vs.Chams.VisibleColor)
-				else
-					avatarImage.ImageColor3 = Color3.fromRGB(255, 255, 255)
-				end
-			else
-				lastState = false
-			end
-		end)
-		if not success then
-			warn("Antipathy Preview Task Error: " .. tostring(err))
-		end
-	end
-end)
 end
 
 
