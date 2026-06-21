@@ -69,6 +69,7 @@ local Settings = {
 		GlobalESP = true,
 		ESPKeybind = "...",
 		TeamCheck = false,
+		MaxDistance = 2000,
 		BoxESP = {
 			Enabled = false,
 			Style = "Corners",
@@ -79,6 +80,7 @@ local Settings = {
 			FillTransparency = 0.75,
 			Outline = true,
 			OutlineColor = "000000",
+			ScaledESP = false,
 		},
 		Chams = {
 			Enabled = false,
@@ -111,9 +113,15 @@ local Settings = {
 			GradientBar = false,
 			BarThickness = 2,
 		},
-		NameESP = {
+		ProfileESP = {
 			Enabled = false,
 			ShowDisplayName = true,
+			ShowUsername = true,
+			ShowJoinDate = false,
+			ShowUserId = false,
+			ShowAvatarImage = false,
+			ShowPremium = false,
+			ShowCountry = false,
 			FontSize = 14,
 			Position = "Top",
 			Color = "FFFFFF",
@@ -123,6 +131,24 @@ local Settings = {
 			Origin = "Bottom",
 			Thickness = 1,
 			Color = "FFFFFF",
+		},
+		Skeleton = {
+			Enabled = false,
+			Color = "FFFFFF",
+			Thickness = 1,
+		},
+		ViewAngle = {
+			Enabled = false,
+			Color = "00FF00",
+			Length = 30,
+			Thickness = 1,
+		},
+		Coordinates = {
+			Enabled = false,
+			FontSize = 12,
+			Position = "Bottom",
+			Color = "FFFFFF",
+			ShowDecimals = false,
 		},
 		AvatarPreview = false,
 	},
@@ -564,6 +590,7 @@ local bdx, bdy = 1, 1
 local bspeed = 0.15
 local bfx, bfy = 0, 0
 local blt = 0
+local _footerGhost = nil
 task.spawn(function()
 	while bgFooter.Parent do
 		local fs = frame.AbsoluteSize
@@ -578,11 +605,31 @@ task.spawn(function()
 		if bfy >= my then bfy = my; bdy = -1; hit = true elseif bfy <= minY then bfy = minY; bdy = 1; hit = true end
 		if hit then bgFooter.TextColor3 = Color3.fromRGB(math.random(150,255), math.random(150,255), math.random(150,255)) end
 		local now = tick()
-		if now - blt > 0.03 then
+		if now - blt > 0.15 then
 			blt = now
-			local g = bgFooter:Clone()
-			g.TextColor3 = Color3.fromRGB(255,255,255); g.TextTransparency = 0.6; g.ZIndex = 2; g.TextSize = bgFooter.TextSize + 1; g.Parent = frame
-			task.spawn(function() for i=1,10 do g.TextTransparency += 0.04; task.wait(0.02) end g:Destroy() end)
+			if not _footerGhost or not _footerGhost.Parent then
+				_footerGhost = Instance.new("TextLabel")
+				_footerGhost.BackgroundTransparency = 1
+				_footerGhost.Size = bgFooter.Size
+				_footerGhost.Font = bgFooter.Font
+				_footerGhost.ZIndex = 2
+				_footerGhost.Parent = frame
+			end
+			_footerGhost.Text = bgFooter.Text
+			_footerGhost.Position = bgFooter.Position
+			_footerGhost.TextColor3 = Color3.fromRGB(255,255,255)
+			_footerGhost.TextTransparency = 0.6
+			_footerGhost.TextSize = bgFooter.TextSize + 1
+			_footerGhost.Visible = true
+			task.spawn(function()
+				local g = _footerGhost
+				for i=1,5 do
+					if not g or not g.Parent then break end
+					g.TextTransparency = g.TextTransparency + 0.08
+					task.wait(0.04)
+				end
+				if g and g.Parent then g.Visible = false end
+			end)
 		end
 		bgFooter.Position = UDim2.new(0, math.floor(bfx), 0, math.floor(bfy))
 		RunService.Heartbeat:Wait()
@@ -873,7 +920,7 @@ local visTabBtn, visTabLine, visTabStroke = makeTabButton("Visuals", "", 2, true
 local rageTabBtn, rageTabLine, rageTabStroke = makeTabButton("Rage", "", 3, true, "rbxassetid://75300833275017")
 local frameTabBtn, frameTabLine, frameTabStroke = makeTabButton("Frame", "", 4, false, "rbxassetid://85723984706301")
 local miscTabBtn, miscTabLine, miscTabStroke = makeTabButton("Misc", "", 5, false, "rbxassetid://136195218495313")
-local settingsTabBtn, settingsTabLine, settingsTabStroke = makeTabButton("Settings", "rbxassetid://133619830565331", 6, false, "")
+local settingsTabBtn, settingsTabLine, settingsTabStroke = makeTabButton("Settings", "", 6, false, "rbxassetid://133619830565331")
 
 -- Minimize button glitch
 task.spawn(function()
@@ -1869,6 +1916,7 @@ createDivider("All Heil Antipathy Visuals", vn(), visTab)
 createKeybindButton("ESP Keybind", vn(), visTab, Settings.Visuals, "ESPKeybind")
 createSwitch("ESP Switch", vn(), visTab, Settings.Visuals, "GlobalESP")
 createSwitch("Team Check", vn(), visTab, Settings.Visuals, "TeamCheck")
+createSlider("Max Distance", vn(), visTab, 100, 5000, Settings.Visuals, "MaxDistance")
 
 -- Box ESP section
 local boxESPSettings, boxESPSection = createSection("ESP", nil, vn(), visTab, Settings.Visuals.BoxESP, "Enabled")
@@ -1884,6 +1932,7 @@ createSlider("Thickness", 1, er3, 1, 5, Settings.Visuals.BoxESP, "Thickness", 1,
 createSlider("Fill Transparency", 2, er3, 0, 1, Settings.Visuals.BoxESP, "FillTransparency", 0.05, "", 0.5, -4, true)
 createSwitch("Outline", ben(), boxESPSettings, Settings.Visuals.BoxESP, "Outline")
 createHexColor("Outline Color", ben(), boxESPSettings, Settings.Visuals.BoxESP, "OutlineColor")
+createSwitch("Scaled ESP", ben(), boxESPSettings, Settings.Visuals.BoxESP, "ScaledESP")
 
 -- Chams section
 local chamsSettings, chamsSection = createSection("Chams", nil, vn(), visTab, Settings.Visuals.Chams, "Enabled")
@@ -1904,13 +1953,7 @@ createSlider("Lifetime", trn(), trailSettings, 0, 5, Settings.Visuals.Trail, "Li
 createHexColor("Trail Color", trn(), trailSettings, Settings.Visuals.Trail, "Color")
 createSlider("Transparency", trn(), trailSettings, 0, 1, Settings.Visuals.Trail, "Transparency", 0.05)
 
--- Name ESP section
-local nameSettings, nameSection = createSection("Name ESP", nil, vn(), visTab, Settings.Visuals.NameESP, "Enabled")
-local neo = 0; local function nen() neo = neo + 1; return neo end
-createSwitch("+ Display Name", nen(), nameSettings, Settings.Visuals.NameESP, "ShowDisplayName")
-createSlider("Font Size", nen(), nameSettings, 8, 24, Settings.Visuals.NameESP, "FontSize")
-createDropdown("Position", nen(), nameSettings, {"Top", "Bottom", "Left", "Right"}, Settings.Visuals.NameESP, "Position")
-createHexColor("Color", nen(), nameSettings, Settings.Visuals.NameESP, "Color")
+
 
 -- Distance ESP section
 local distESPSettings, distSection = createSection("Distance ESP", nil, vn(), visTab, Settings.Visuals.Distance, "Enabled")
@@ -1936,6 +1979,44 @@ local teo = 0; local function ten() teo = teo + 1; return teo end
 createDropdown("Origin", ten(), tracerESPSettings, {"Bottom", "Center", "Top", "Mouse"}, Settings.Visuals.Tracers, "Origin")
 createSlider("Thickness", ten(), tracerESPSettings, 1, 5, Settings.Visuals.Tracers, "Thickness")
 createHexColor("Color", ten(), tracerESPSettings, Settings.Visuals.Tracers, "Color")
+
+-- Profile ESP section (replaces Name ESP)
+local profileSettings, profileSection = createSection("Profile ESP", nil, vn(), visTab, Settings.Visuals.ProfileESP, "Enabled")
+local peo = 0; local function pen() peo = peo + 1; return peo end
+local pr1 = createRowContainer(pen(), profileSettings, 22)
+createSwitch("Display Name", 1, pr1, Settings.Visuals.ProfileESP, "ShowDisplayName", nil, 0.5, -4)
+createSwitch("Username", 2, pr1, Settings.Visuals.ProfileESP, "ShowUsername", nil, 0.5, -4)
+local pr2 = createRowContainer(pen(), profileSettings, 22)
+createSwitch("Join Date", 1, pr2, Settings.Visuals.ProfileESP, "ShowJoinDate", nil, 0.5, -4)
+createSwitch("User ID", 2, pr2, Settings.Visuals.ProfileESP, "ShowUserId", nil, 0.5, -4)
+local pr3 = createRowContainer(pen(), profileSettings, 22)
+createSwitch("Avatar Image", 1, pr3, Settings.Visuals.ProfileESP, "ShowAvatarImage", nil, 0.5, -4)
+createSwitch("Premium", 2, pr3, Settings.Visuals.ProfileESP, "ShowPremium", nil, 0.5, -4)
+createSwitch("Country", pen(), profileSettings, Settings.Visuals.ProfileESP, "ShowCountry")
+createSlider("Font Size", pen(), profileSettings, 8, 24, Settings.Visuals.ProfileESP, "FontSize")
+createDropdown("Position", pen(), profileSettings, {"Top", "Bottom", "Left", "Right"}, Settings.Visuals.ProfileESP, "Position")
+createHexColor("Color", pen(), profileSettings, Settings.Visuals.ProfileESP, "Color")
+
+-- Skeleton ESP section
+local skelSettings, skelSection = createSection("Skeleton", nil, vn(), visTab, Settings.Visuals.Skeleton, "Enabled")
+local sko = 0; local function skn() sko = sko + 1; return sko end
+createSlider("Thickness", skn(), skelSettings, 1, 5, Settings.Visuals.Skeleton, "Thickness")
+createHexColor("Color", skn(), skelSettings, Settings.Visuals.Skeleton, "Color")
+
+-- View Angle section
+local vaSettings, vaSection = createSection("View Angle", nil, vn(), visTab, Settings.Visuals.ViewAngle, "Enabled")
+local vao = 0; local function van() vao = vao + 1; return vao end
+createSlider("Length", van(), vaSettings, 10, 100, Settings.Visuals.ViewAngle, "Length")
+createSlider("Thickness", van(), vaSettings, 1, 5, Settings.Visuals.ViewAngle, "Thickness")
+createHexColor("Color", van(), vaSettings, Settings.Visuals.ViewAngle, "Color")
+
+-- Coordinates section
+local coordSettings, coordSection = createSection("Coordinates", nil, vn(), visTab, Settings.Visuals.Coordinates, "Enabled")
+local coo = 0; local function con() coo = coo + 1; return coo end
+createSlider("Font Size", con(), coordSettings, 8, 24, Settings.Visuals.Coordinates, "FontSize")
+createDropdown("Position", con(), coordSettings, {"Top", "Bottom"}, Settings.Visuals.Coordinates, "Position")
+createHexColor("Color", con(), coordSettings, Settings.Visuals.Coordinates, "Color")
+createSwitch("Show Decimals", con(), coordSettings, Settings.Visuals.Coordinates, "ShowDecimals")
 end
 
 -- ═══════════════════════════════════════════════════════════════
@@ -2240,9 +2321,9 @@ task.spawn(function()
 					boxShapesFrameOutline.Visible = false
 				end
 
-				-- Name preview (no GlobalESP check)
-				avNameLabel.Visible = vs.NameESP.Enabled
-				if avNameLabel.Visible then avNameLabel.TextColor3 = hexToColor3(vs.NameESP.Color) end
+				-- Profile preview (no GlobalESP check)
+				avNameLabel.Visible = vs.ProfileESP.Enabled
+				if avNameLabel.Visible then avNameLabel.TextColor3 = hexToColor3(vs.ProfileESP.Color) end
 
 				-- Health bar preview (no GlobalESP check)
 				avHealthBar.Visible = vs.Health.Enabled
@@ -2443,8 +2524,12 @@ do
 		end
 	end)
 
+	local _activeStars = 0
+	local _maxStars = 5
 	task.spawn(function()
 		while frame.Parent do
+			if _activeStars >= _maxStars then task.wait(1) continue end
+			_activeStars = _activeStars + 1
 			local star = Instance.new("Frame")
 			star.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 			star.BorderSizePixel = 0
@@ -2466,13 +2551,11 @@ do
 			
 			local grad = Instance.new("UIGradient")
 			grad.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(255,255,255))}
-			-- The frame rotation handles flipping naturally, tail is 0 (transparent), head is 1 (opaque)
 			grad.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, 0)}
 			grad.Parent = star
 
 			local sparkle = Instance.new("Frame")
 			sparkle.Size = UDim2.new(0, 3, 0, 3)
-			-- Front is always the right edge of the frame
 			sparkle.Position = UDim2.new(1, 0, 0.5, 0)
 			sparkle.AnchorPoint = Vector2.new(0.5, 0.5)
 			sparkle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -2483,10 +2566,11 @@ do
 			
 			star.Parent = bgContainer
 			
-			local tInfo = TweenInfo.new(math.random(10, 20)/10, Enum.EasingStyle.Linear)
+			local tweenDur = math.random(10, 20)/10
+			local tInfo = TweenInfo.new(tweenDur, Enum.EasingStyle.Linear)
 			local tween = TweenService:Create(star, tInfo, {Position = UDim2.new(endX, 0, endY, 0)})
 			tween:Play()
-			task.delay(2.5, function() star:Destroy() end)
+			tween.Completed:Connect(function() star:Destroy(); _activeStars = _activeStars - 1 end)
 			
 			task.wait(math.random(1, 4))
 		end
@@ -2612,10 +2696,13 @@ do
 				if Settings.Visuals.BoxESP.Enabled then count = count + 1 end
 				if Settings.Visuals.Chams.Enabled then count = count + 1 end
 				if Settings.Visuals.Trail.Enabled then count = count + 1 end
-				if Settings.Visuals.NameESP.Enabled then count = count + 1 end
+				if Settings.Visuals.ProfileESP.Enabled then count = count + 1 end
 				if Settings.Visuals.Distance.Enabled then count = count + 1 end
 				if Settings.Visuals.Health.Enabled then count = count + 1 end
 				if Settings.Visuals.Tracers.Enabled then count = count + 1 end
+				if Settings.Visuals.Skeleton.Enabled then count = count + 1 end
+				if Settings.Visuals.ViewAngle.Enabled then count = count + 1 end
+				if Settings.Visuals.Coordinates.Enabled then count = count + 1 end
 				if Settings.Rage.KillAura.Enabled then count = count + 1 end
 				if Settings.Rage.Spinbot.Enabled then count = count + 1 end
 				if Settings.Rage.HitboxExpander.Enabled then count = count + 1 end
