@@ -2085,17 +2085,6 @@ createSlider("Speed", cfn(), cframeSettings, 1, 200, Settings.Rage.CFrame, "Spee
 local rf = Instance.new("Frame"); rf.LayoutOrder = rn(); rf.BackgroundTransparency = 1; rf.Size = UDim2.new(1,0,0,8); rf.Parent = rageTab
 end
 
--- (Settings Preview section removed)
-
-
-
-
-
-
-
-end
-
-
 -- ═══════════════════════════════════════════════════════════════
 -- UI ENHANCEMENT: SECTION HOVER GLITCH EFFECT
 -- ═══════════════════════════════════════════════════════════════
