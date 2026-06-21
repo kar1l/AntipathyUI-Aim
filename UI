@@ -519,7 +519,7 @@ addHalftoneCorner(1, 1, 175)
 local centerSparkle = Instance.new("ImageLabel")
 centerSparkle.Size = UDim2.new(0, 250, 0, 250)
 centerSparkle.AnchorPoint = Vector2.new(0.5, 0.5)
-centerSparkle.Position = UDim2.new(0.5, 0, 0.5, 0)
+centerSparkle.Position = UDim2.new(0.5, -55, 0.5, 0)
 centerSparkle.BackgroundTransparency = 1
 centerSparkle.Image = "rbxassetid://86630871053206"
 centerSparkle.ImageColor3 = Color3.fromRGB(255, 255, 255)
@@ -550,7 +550,7 @@ bgFooter.Parent = frame
 
 task.spawn(function()
 	local baseText = "All Heil Antipathy & @hiies"
-	local gn = {baseText, "All Heil Antipathy & @hiies", "A11 H3il Ant1p4##y & @hiies", "Hell H31l 4n+1path-y & @hiies", "A1l He1l A-A-AnT1PAth..y"}
+	local gn = {baseText, "Why, why, why?", "A11 H3il Ant1p4##y & @hiies", "Hell H31l 4n+1path-y & @hiies", "A1l He1l A-A-AnT1PAth..y"}
 	while bgFooter.Parent do
 		if math.random(1, 6) == 1 then
 			for _ = 1, math.random(4, 8) do bgFooter.Text = gn[math.random(#gn)]; task.wait(0.025 + math.random() * 0.03) end
@@ -561,7 +561,7 @@ task.spawn(function()
 end)
 
 local bdx, bdy = 1, 1
-local bspeed = 0.25
+local bspeed = 0.15
 local bfx, bfy = 0, 0
 local blt = 0
 task.spawn(function()
@@ -570,7 +570,7 @@ task.spawn(function()
 		local ts = bgFooter.AbsoluteSize
 		if fs.X == 0 or ts.X == 0 then RunService.Heartbeat:Wait() continue end
 		local minX, minY = 0, TOPBAR_H
-		local maxX, maxY = fs.X - 110 - ts.X, fs.Y - ts.Y
+		local maxX, maxY = fs.X - 110 - ts.X, fs.Y - ts.Y - 24
 		local mx, my = maxX, maxY
 		bfx = bfx + bspeed * bdx; bfy = bfy + bspeed * bdy
 		local hit = false
@@ -871,6 +871,9 @@ end
 local aimTabBtn, aimTabLine, aimTabStroke = makeTabButton("Aim", "", 1, true, "rbxassetid://107427039527660")
 local visTabBtn, visTabLine, visTabStroke = makeTabButton("Visuals", "", 2, true, "rbxassetid://118751745086662")
 local rageTabBtn, rageTabLine, rageTabStroke = makeTabButton("Rage", "", 3, true, "rbxassetid://75300833275017")
+local frameTabBtn, frameTabLine, frameTabStroke = makeTabButton("Frame", "", 4, false, "rbxassetid://85723984706301")
+local miscTabBtn, miscTabLine, miscTabStroke = makeTabButton("Misc", "", 5, false, "rbxassetid://136195218495313")
+local settingsTabBtn, settingsTabLine, settingsTabStroke = makeTabButton("Settings", "rbxassetid://133619830565331", 6, false, "")
 
 -- Minimize button glitch
 task.spawn(function()
@@ -941,6 +944,9 @@ end
 local aimTab = createTabScroll("AimTab", true)
 local visTab = createTabScroll("VisualsTab", false)
 local rageTab = createTabScroll("RageTab", false)
+local frameTab = createTabScroll("FrameTab", false)
+local miscTab = createTabScroll("MiscTab", false)
+local settingsTab = createTabScroll("SettingsTab", false)
 
 -- ═══════════════════════════════════════════════════════════════
 -- HELPERS (defined at top)
@@ -2331,21 +2337,29 @@ do
 	local NUM_BUTTERFLIES = 14
 	local butterflies = {}
 
+	local bgContainer = Instance.new("CanvasGroup")
+	bgContainer.Name = "BgContainer"
+	bgContainer.Size = UDim2.new(1, -110, 1, -32 - 24)
+	bgContainer.Position = UDim2.new(0, 0, 0, 32)
+	bgContainer.BackgroundTransparency = 1
+	bgContainer.ZIndex = 1
+	bgContainer.Parent = frame
+
 	for i = 1, NUM_BUTTERFLIES do
 		-- Create butterfly body with two wing frames
 		local body = Instance.new("Frame")
-		body.Size = UDim2.new(0, 2, 0, 4)
+		body.Size = UDim2.new(0, 2, 0, 6)
 		body.BackgroundColor3 = Color3.fromRGB(math.random(180, 255), math.random(180, 255), math.random(180, 255))
 		body.BackgroundTransparency = math.random(50, 75) / 100
 		body.BorderSizePixel = 0
 		body.ZIndex = 3
 		body.Rotation = math.random(-30, 30)
 		body.Position = UDim2.new(math.random() * 0.9, 0, math.random() * 0.85 + 0.08, 0)
-		body.Parent = frame
+		body.Parent = bgContainer
 
 		local wingL = Instance.new("Frame")
-		wingL.Size = UDim2.new(0, 4, 0, 3)
-		wingL.Position = UDim2.new(0, -4, 0, 0)
+		wingL.Size = UDim2.new(0, 5, 0, 3)
+		wingL.Position = UDim2.new(0, -5, 0.5, -1)
 		wingL.BackgroundColor3 = body.BackgroundColor3
 		wingL.BackgroundTransparency = body.BackgroundTransparency - 0.1
 		wingL.BorderSizePixel = 0
@@ -2354,8 +2368,8 @@ do
 		wingL.Parent = body
 
 		local wingR = Instance.new("Frame")
-		wingR.Size = UDim2.new(0, 4, 0, 3)
-		wingR.Position = UDim2.new(1, 0, 0, 0)
+		wingR.Size = UDim2.new(0, 5, 0, 3)
+		wingR.Position = UDim2.new(1, 0, 0.5, -1)
 		wingR.BackgroundColor3 = body.BackgroundColor3
 		wingR.BackgroundTransparency = body.BackgroundTransparency - 0.1
 		wingR.BorderSizePixel = 0
@@ -2369,11 +2383,11 @@ do
 			wingR = wingR,
 			x = body.Position.X.Scale,
 			y = body.Position.Y.Scale,
-			vx = (math.random() - 0.5) * 0.02,
-			vy = (math.random() - 0.5) * 0.01,
+			vx = (math.random() - 0.5) * 0.04,
+			vy = (math.random() - 0.5) * 0.02,
 			phase = math.random() * math.pi * 2,
 			wingPhase = math.random() * math.pi * 2,
-			flutterSpeed = 3.5 + math.random() * 3.5,
+			flutterSpeed = 2.0 + math.random() * 2.0,
 			dirChangeTimer = math.random() * 4,
 		})
 	end
@@ -2388,8 +2402,8 @@ do
 
 				-- Change direction randomly (very gentle butterfly flutter)
 				if bf.dirChangeTimer <= 0 then
-					bf.vx = (math.random() - 0.5) * 0.03
-					bf.vy = (math.random() - 0.5) * 0.015
+					bf.vx = (math.random() - 0.5) * 0.05
+					bf.vy = (math.random() - 0.5) * 0.025
 					bf.dirChangeTimer = 1.0 + math.random() * 3.0
 				end
 
@@ -2401,9 +2415,17 @@ do
 				bf.x = bf.x + bf.vx * dt
 				bf.y = bf.y + bf.vy * dt
 
-				-- Wrap around
-				if bf.x > 1.03 then bf.x = -0.03 elseif bf.x < -0.03 then bf.x = 1.03 end
-				if bf.y > 0.98 then bf.y = 0.08 elseif bf.y < 0.06 then bf.y = 0.98 end
+				-- Bounce around (within bgContainer)
+				if bf.x > 0.98 then 
+					bf.x = 0.98; bf.vx = -math.abs(bf.vx) 
+				elseif bf.x < 0.02 then 
+					bf.x = 0.02; bf.vx = math.abs(bf.vx) 
+				end
+				if bf.y > 0.98 then 
+					bf.y = 0.98; bf.vy = -math.abs(bf.vy) 
+				elseif bf.y < 0.02 then 
+					bf.y = 0.02; bf.vy = math.abs(bf.vy) 
+				end
 
 				-- Visual position includes the non-cumulative figure-8 flutter overlay
 				bf.body.Position = UDim2.new(bf.x + flutterX, 0, bf.y + flutterY, 0)
@@ -2411,11 +2433,62 @@ do
 
 				-- Wing flap animation (natural slow size oscillation)
 				local wingFlap = math.abs(math.sin(bf.wingPhase))
-				local wingH = math.floor(1 + wingFlap * 3)
-				bf.wingL.Size = UDim2.new(0, 4, 0, wingH)
-				bf.wingR.Size = UDim2.new(0, 4, 0, wingH)
+				local wingH = math.floor(2 + wingFlap * 6)
+				bf.wingL.Size = UDim2.new(0, 6, 0, wingH)
+				bf.wingR.Size = UDim2.new(0, 6, 0, wingH)
+				bf.wingL.Position = UDim2.new(0, -6, 0.5, -wingH/2)
+				bf.wingR.Position = UDim2.new(1, 0, 0.5, -wingH/2)
 				bf.body.BackgroundTransparency = 0.55 + math.sin(bf.phase * 1.8) * 0.2
 			end
+		end
+	end)
+
+	task.spawn(function()
+		while frame.Parent do
+			local star = Instance.new("Frame")
+			star.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			star.BorderSizePixel = 0
+			star.ZIndex = 2
+			local startX = math.random() > 0.5 and 1.1 or -0.1
+			local startY = math.random() * 1.2 - 0.1
+			star.Position = UDim2.new(startX, 0, startY, 0)
+			
+			star.Size = UDim2.new(0, math.random(20, 60), 0, 1)
+			local angle = math.rad(math.random(-20, 20))
+			local distance = 1.5
+			local dir = startX > 0.5 and -1 or 1
+			local endX = startX + math.cos(angle) * distance * dir
+			local endY = startY + math.sin(angle) * distance * dir
+			
+			local absW = bgContainer.AbsoluteSize.X > 0 and bgContainer.AbsoluteSize.X or 500
+			local absH = bgContainer.AbsoluteSize.Y > 0 and bgContainer.AbsoluteSize.Y or 300
+			star.Rotation = math.deg(math.atan2((endY - startY)*absH, (endX - startX)*absW))
+			
+			local grad = Instance.new("UIGradient")
+			grad.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(255,255,255))}
+			-- The frame rotation handles flipping naturally, tail is 0 (transparent), head is 1 (opaque)
+			grad.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, 0)}
+			grad.Parent = star
+
+			local sparkle = Instance.new("Frame")
+			sparkle.Size = UDim2.new(0, 3, 0, 3)
+			-- Front is always the right edge of the frame
+			sparkle.Position = UDim2.new(1, 0, 0.5, 0)
+			sparkle.AnchorPoint = Vector2.new(0.5, 0.5)
+			sparkle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			sparkle.BorderSizePixel = 0
+			sparkle.ZIndex = 2
+			Instance.new("UICorner", sparkle).CornerRadius = UDim.new(1, 0)
+			sparkle.Parent = star
+			
+			star.Parent = bgContainer
+			
+			local tInfo = TweenInfo.new(math.random(10, 20)/10, Enum.EasingStyle.Linear)
+			local tween = TweenService:Create(star, tInfo, {Position = UDim2.new(endX, 0, endY, 0)})
+			tween:Play()
+			task.delay(2.5, function() star:Destroy() end)
+			
+			task.wait(math.random(1, 4))
 		end
 	end)
 end
@@ -2431,10 +2504,37 @@ do
 	statusBar.Name = "StatusBar"
 	statusBar.Size = UDim2.new(1, -TAB_PANEL_W, 0, STATUS_H)
 	statusBar.Position = UDim2.new(0, 0, 1, -STATUS_H)
+	statusBar.AutomaticSize = Enum.AutomaticSize.None
 	statusBar.BackgroundColor3 = Color3.fromRGB(8, 8, 8)
 	statusBar.BorderSizePixel = 0
 	statusBar.ZIndex = 60
 	statusBar.Parent = frame
+
+	local sbPad = Instance.new("UIPadding")
+	sbPad.PaddingLeft = UDim.new(0, 8)
+	sbPad.PaddingRight = UDim.new(0, 8)
+	sbPad.Parent = statusBar
+
+	local sbDragging = false
+	local sbDragStart, sbStartPos
+	statusBar.InputBegan:Connect(function(input)
+		if statusBar.Parent ~= frame and input.UserInputType == Enum.UserInputType.MouseButton1 then
+			sbDragging = true
+			sbDragStart = input.Position
+			sbStartPos = statusBar.Position
+		end
+	end)
+	statusBar.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			sbDragging = false
+		end
+	end)
+	UserInputService.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement and sbDragging then
+			local delta = input.Position - sbDragStart
+			statusBar.Position = UDim2.new(sbStartPos.X.Scale, sbStartPos.X.Offset + delta.X, sbStartPos.Y.Scale, sbStartPos.Y.Offset + delta.Y)
+		end
+	end)
 
 	local statusGrad = Instance.new("UIGradient")
 	statusGrad.Color = ColorSequence.new{
@@ -2452,9 +2552,12 @@ do
 	statusSep.Parent = statusBar
 
 	local statusLabel = Instance.new("TextLabel")
+	statusLabel.Name = "StatusLabel"
 	statusLabel.BackgroundTransparency = 1
-	statusLabel.Size = UDim2.new(1, -8, 1, 0)
-	statusLabel.Position = UDim2.new(0, 4, 0, 0)
+	statusLabel.Size = UDim2.new(1, 0, 1, 0)
+	statusLabel.Position = UDim2.new(0, 0, 0, 0)
+	statusLabel.AutomaticSize = Enum.AutomaticSize.None
+	statusLabel.TextWrapped = false
 	statusLabel.Text = "FPS: -- | Ping: -- | Players: -- | Session: 0:00 | Active: 0"
 	statusLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
 	statusLabel.Font = Enum.Font.Code
@@ -2485,7 +2588,11 @@ do
 				local ping = "--"
 				pcall(function()
 					local stats = game:GetService("Stats")
-					ping = tostring(math.floor(stats.Network.ServerStatsItem["Data Ping"]))
+					local success, val = pcall(function() return stats.Network.ServerStatsItem["Data Ping"]:GetValue() end)
+					if not success then
+						val = stats.PerformanceStats.Ping:GetValue()
+					end
+					ping = tostring(math.floor(val))
 				end)
 
 				-- Session time
@@ -2516,7 +2623,8 @@ do
 				if Settings.Rage.AntiAim.Enabled then count = count + 1 end
 				if Settings.Rage.CFrame.Enabled then count = count + 1 end
 
-				statusLabel.Text = fpsText .. " | Ping: " .. ping .. "ms | Players: " .. playerCount .. " | Session: " .. sessionStr .. " | Active: " .. count
+				local pingStr = ping == "--" and "--" or (ping .. "ms")
+				statusLabel.Text = fpsText .. " | Ping: " .. pingStr .. " | Players: " .. playerCount .. " | Session: " .. sessionStr .. " | Active: " .. count
 			end
 			RunService.Heartbeat:Wait()
 		end
@@ -2642,10 +2750,10 @@ end
 -- TAB SWITCHING (3 tabs)
 -- ═══════════════════════════════════════════════════════════════
 local function switchTab(tabName)
-	local tabs = {Aim = aimTab, Visuals = visTab, Rage = rageTab}
-	local buttons = {Aim = aimTabBtn, Visuals = visTabBtn, Rage = rageTabBtn}
-	local tabLines = {Aim = aimTabLine, Visuals = visTabLine, Rage = rageTabLine}
-	local tabStrokes = {Aim = aimTabStroke, Visuals = visTabStroke, Rage = rageTabStroke}
+	local tabs = {Aim = aimTab, Visuals = visTab, Rage = rageTab, Frame = frameTab, Misc = miscTab, Settings = settingsTab}
+	local buttons = {Aim = aimTabBtn, Visuals = visTabBtn, Rage = rageTabBtn, Frame = frameTabBtn, Misc = miscTabBtn, Settings = settingsTabBtn}
+	local tabLines = {Aim = aimTabLine, Visuals = visTabLine, Rage = rageTabLine, Frame = frameTabLine, Misc = miscTabLine, Settings = settingsTabLine}
+	local tabStrokes = {Aim = aimTabStroke, Visuals = visTabStroke, Rage = rageTabStroke, Frame = frameTabStroke, Misc = miscTabStroke, Settings = settingsTabStroke}
 
 	for name, tab in pairs(tabs) do
 		local isActive = (name == tabName)
@@ -2694,6 +2802,9 @@ end
 aimTabBtn.MouseButton1Click:Connect(function() switchTab("Aim") end)
 visTabBtn.MouseButton1Click:Connect(function() switchTab("Visuals") end)
 rageTabBtn.MouseButton1Click:Connect(function() switchTab("Rage") end)
+frameTabBtn.MouseButton1Click:Connect(function() switchTab("Frame") end)
+miscTabBtn.MouseButton1Click:Connect(function() switchTab("Misc") end)
+settingsTabBtn.MouseButton1Click:Connect(function() switchTab("Settings") end)
 
 -- ═══════════════════════════════════════════════════════════════
 -- MINIMIZE & CLOSE (fixed centering, +/- toggle, no empty space)
@@ -2706,6 +2817,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
 		for _, ht in ipairs(halftones) do ht.Visible = true end
 		tabPanel.Visible = true
 		aimTabBtn.Visible = true; visTabBtn.Visible = true; rageTabBtn.Visible = true
+		frameTabBtn.Visible = true; miscTabBtn.Visible = true; settingsTabBtn.Visible = true
 		subtitle.Visible = true
 		TweenService:Create(title, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 16, 0, 6), Size = UDim2.new(0, 90, 0, 20)}):Play()
 		TweenService:Create(subtitle, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 16, 0, 26), Size = UDim2.new(0, 200, 0, 15)}):Play()
@@ -2713,7 +2825,16 @@ minimizeBtn.MouseButton1Click:Connect(function()
 		TweenService:Create(closeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, FRAME_W - 42, 0, 12)}):Play()
 		task.spawn(function()
 			body.Visible = true; frame.Size = UDim2.new(0, FRAME_W, 0, FRAME_H)
+			statusBar.Parent = frame
+			statusBar.AutomaticSize = Enum.AutomaticSize.None
 			statusBar.Size = UDim2.new(1, -TAB_PANEL_W, 0, STATUS_H)
+			statusBar.Position = UDim2.new(0, 0, 1, -STATUS_H)
+			local sl = statusBar:FindFirstChild("StatusLabel")
+			if sl then
+				sl.AutomaticSize = Enum.AutomaticSize.None
+				sl.Size = UDim2.new(1, 0, 1, 0)
+				sl.TextXAlignment = Enum.TextXAlignment.Center
+			end
 			local s = deviceScale; local op = frame.Position
 			for _=1,5 do uiScale.Scale = s*(0.8+math.random()*0.4); frame.Position = op + UDim2.new(0, math.random(-20,20), 0, math.random(-20,20)); frame.BackgroundTransparency = math.random()*0.5; task.wait(0.03+math.random()*0.04) end
 			uiScale.Scale = s; frame.Position = op; frame.BackgroundTransparency = 0
@@ -2724,6 +2845,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
 		for _, ht in ipairs(halftones) do ht.Visible = false end
 		tabPanel.Visible = false
 		aimTabBtn.Visible = false; visTabBtn.Visible = false; rageTabBtn.Visible = false
+		frameTabBtn.Visible = false; miscTabBtn.Visible = false; settingsTabBtn.Visible = false
 		subtitle.Visible = true
 		-- Keep title at top and subtitle below it, center-ish aligned
 		TweenService:Create(title, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 16, 0, 6), Size = UDim2.new(0, 150, 0, 20)}):Play()
@@ -2734,8 +2856,17 @@ minimizeBtn.MouseButton1Click:Connect(function()
 			local s = deviceScale; local op = frame.Position
 			for _=1,5 do uiScale.Scale = s*(0.7+math.random()*0.3); frame.Position = op + UDim2.new(0, math.random(-15,15), 0, math.random(-15,15)); frame.BackgroundTransparency = math.random()*0.3; task.wait(0.03+math.random()*0.04) end
 			uiScale.Scale = s; frame.Position = op; frame.BackgroundTransparency = 0
-			frame.Size = UDim2.new(0, 320, 0, TOPBAR_H + STATUS_H); body.Visible = false
-			statusBar.Size = UDim2.new(1, 0, 0, STATUS_H)
+			frame.Size = UDim2.new(0, 320, 0, TOPBAR_H); body.Visible = false
+			statusBar.Parent = screenGui
+			statusBar.AutomaticSize = Enum.AutomaticSize.X
+			statusBar.Size = UDim2.new(0, 320, 0, STATUS_H)
+			statusBar.Position = UDim2.new(frame.Position.X.Scale, frame.Position.X.Offset, frame.Position.Y.Scale, frame.Position.Y.Offset + TOPBAR_H + 5)
+			local sl = statusBar:FindFirstChild("StatusLabel")
+			if sl then
+				sl.AutomaticSize = Enum.AutomaticSize.X
+				sl.Size = UDim2.new(0, 0, 1, 0)
+				sl.TextXAlignment = Enum.TextXAlignment.Left
+			end
 			statusBar.Visible = true
 		end)
 	end
