@@ -192,6 +192,30 @@ local Settings = {
 	},
 }
 
+-- Corner frame helper: draws 8 corner lines around a frame
+local function addCornerBorder(parent, color, thickness, cornerLen)
+	local corners = {}
+	local positions = {
+		{UDim2.new(0,0,0,0), UDim2.new(0,cornerLen,0,thickness)},          -- TL horiz
+		{UDim2.new(0,0,0,0), UDim2.new(0,thickness,0,cornerLen)},          -- TL vert
+		{UDim2.new(1,-cornerLen,0,0), UDim2.new(0,cornerLen,0,thickness)},  -- TR horiz
+		{UDim2.new(1,-thickness,0,0), UDim2.new(0,thickness,0,cornerLen)},  -- TR vert
+		{UDim2.new(0,0,1,-thickness), UDim2.new(0,cornerLen,0,thickness)},  -- BL horiz
+		{UDim2.new(0,0,1,-cornerLen), UDim2.new(0,thickness,0,cornerLen)},  -- BL vert
+		{UDim2.new(1,-cornerLen,1,-thickness), UDim2.new(0,cornerLen,0,thickness)}, -- BR horiz
+		{UDim2.new(1,-thickness,1,-cornerLen), UDim2.new(0,thickness,0,cornerLen)}, -- BR vert
+	}
+	for _, p in ipairs(positions) do
+		local line = Instance.new("Frame")
+		line.Name = "CornerLine"
+		line.Position = p[1]; line.Size = p[2]
+		line.BackgroundColor3 = color; line.BorderSizePixel = 0
+		line.ZIndex = 500; line.Parent = parent
+		table.insert(corners, line)
+	end
+	return corners
+end
+
 -- ═══════════════════════════════════════════════════════════════
 -- LOADER
 -- ═══════════════════════════════════════════════════════════════
@@ -430,29 +454,7 @@ UserInputService.InputEnded:Connect(function(input)
 	end
 end)
 
--- Corner frame helper: draws 8 corner lines around a frame
-local function addCornerBorder(parent, color, thickness, cornerLen)
-	local corners = {}
-	local positions = {
-		{UDim2.new(0,0,0,0), UDim2.new(0,cornerLen,0,thickness)},          -- TL horiz
-		{UDim2.new(0,0,0,0), UDim2.new(0,thickness,0,cornerLen)},          -- TL vert
-		{UDim2.new(1,-cornerLen,0,0), UDim2.new(0,cornerLen,0,thickness)},  -- TR horiz
-		{UDim2.new(1,-thickness,0,0), UDim2.new(0,thickness,0,cornerLen)},  -- TR vert
-		{UDim2.new(0,0,1,-thickness), UDim2.new(0,cornerLen,0,thickness)},  -- BL horiz
-		{UDim2.new(0,0,1,-cornerLen), UDim2.new(0,thickness,0,cornerLen)},  -- BL vert
-		{UDim2.new(1,-cornerLen,1,-thickness), UDim2.new(0,cornerLen,0,thickness)}, -- BR horiz
-		{UDim2.new(1,-thickness,1,-cornerLen), UDim2.new(0,thickness,0,cornerLen)}, -- BR vert
-	}
-	for _, p in ipairs(positions) do
-		local line = Instance.new("Frame")
-		line.Name = "CornerLine"
-		line.Position = p[1]; line.Size = p[2]
-		line.BackgroundColor3 = color; line.BorderSizePixel = 0
-		line.ZIndex = 500; line.Parent = parent
-		table.insert(corners, line)
-	end
-	return corners
-end
+
 
 local FRAME_W, FRAME_H = 540, 540
 local TOPBAR_H = 52
