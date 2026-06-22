@@ -91,13 +91,6 @@ local Settings = {
 			DepthMode = "AlwaysOnTop",
 			ColorMode = "Normal",
 		},
-		Trail = {
-			Enabled = false,
-			Type = "Normal",
-			Lifetime = 1,
-			Color = "FFFFFF",
-			Transparency = 0.3,
-		},
 		Distance = {
 			Enabled = false,
 			FontSize = 13,
@@ -1952,7 +1945,7 @@ createDropdown("Color Mode", 2, chr1, {"Normal", "Multi Color"}, Settings.Visual
 local distESPSettings, distSection = createSection("Distance ESP", nil, vn(), visTab, Settings.Visuals.Distance, "Enabled")
 local deo = 0; local function den() deo = deo + 1; return deo end
 createSlider("Font Size", den(), distESPSettings, 8, 24, Settings.Visuals.Distance, "FontSize")
-createDropdown("Position", den(), distESPSettings, {"Top", "Bottom", "Left", "Right"}, Settings.Visuals.Distance, "Position")
+createDropdown("Position", den(), distESPSettings, {"Top", "Bottom", "Left", "Right", "Orbit"}, Settings.Visuals.Distance, "Position")
 createHexColor("Color", den(), distESPSettings, Settings.Visuals.Distance, "Color")
 createSwitch("Show Studs", den(), distESPSettings, Settings.Visuals.Distance, "ShowStuds")
 
@@ -1987,7 +1980,7 @@ createSwitch("Avatar Image", 1, pr3, Settings.Visuals.ProfileESP, "ShowAvatarIma
 createSwitch("Premium", 2, pr3, Settings.Visuals.ProfileESP, "ShowPremium", nil, 0.5, -4)
 createSwitch("Country", pen(), profileSettings, Settings.Visuals.ProfileESP, "ShowCountry")
 createSlider("Font Size", pen(), profileSettings, 8, 24, Settings.Visuals.ProfileESP, "FontSize")
-createDropdown("Position", pen(), profileSettings, {"Top", "Bottom", "Left", "Right"}, Settings.Visuals.ProfileESP, "Position")
+createDropdown("Position", pen(), profileSettings, {"Top", "Bottom", "Left", "Right", "Orbit"}, Settings.Visuals.ProfileESP, "Position")
 createHexColor("Color", pen(), profileSettings, Settings.Visuals.ProfileESP, "Color")
 
 -- Skeleton ESP section
@@ -2007,7 +2000,7 @@ createHexColor("Color", van(), vaSettings, Settings.Visuals.ViewAngle, "Color")
 local coordSettings, coordSection = createSection("Coordinates", nil, vn(), visTab, Settings.Visuals.Coordinates, "Enabled")
 local coo = 0; local function con() coo = coo + 1; return coo end
 createSlider("Font Size", con(), coordSettings, 8, 24, Settings.Visuals.Coordinates, "FontSize")
-createDropdown("Position", con(), coordSettings, {"Top", "Bottom"}, Settings.Visuals.Coordinates, "Position")
+createDropdown("Position", con(), coordSettings, {"Top", "Bottom", "Left", "Right", "Orbit"}, Settings.Visuals.Coordinates, "Position")
 createHexColor("Color", con(), coordSettings, Settings.Visuals.Coordinates, "Color")
 createSwitch("Show Decimals", con(), coordSettings, Settings.Visuals.Coordinates, "ShowDecimals")
 end
@@ -2070,7 +2063,6 @@ createDropdown("Mode", aan(), antiAimSettings, {"Legit", "Blatant"}, Settings.Ra
 local aar1 = createRowContainer(aan(), antiAimSettings, 40)
 createSlider("Range", 1, aar1, 10, 500, Settings.Rage.AntiAim, "Range", 1, "", 0.5, -4, true)
 createSlider("Speed", 2, aar1, 1, 50, Settings.Rage.AntiAim, "Speed", 1, "", 0.5, -4, true)
-createSlider("Speed", 2, aar1, 1, 50, Settings.Rage.AntiAim, "Speed", 1, "", 0.5, -4, true)
 createSwitch("Spectate", aan(), antiAimSettings, Settings.Rage.AntiAim, "Spectate")
 
 -- CFrame section
@@ -2084,6 +2076,17 @@ createSlider("Speed", cfn(), cframeSettings, 1, 200, Settings.Rage.CFrame, "Spee
 
 local rf = Instance.new("Frame"); rf.LayoutOrder = rn(); rf.BackgroundTransparency = 1; rf.Size = UDim2.new(1,0,0,8); rf.Parent = rageTab
 end
+
+-- (Settings Preview section removed)
+
+
+
+
+
+
+
+end
+
 
 -- ═══════════════════════════════════════════════════════════════
 -- UI ENHANCEMENT: SECTION HOVER GLITCH EFFECT
@@ -2434,7 +2437,6 @@ do
 				if Settings.Aim.Triggerbot.Enabled then count = count + 1 end
 				if Settings.Visuals.BoxESP.Enabled then count = count + 1 end
 				if Settings.Visuals.Chams.Enabled then count = count + 1 end
-				if Settings.Visuals.Trail.Enabled then count = count + 1 end
 				if Settings.Visuals.ProfileESP.Enabled then count = count + 1 end
 				if Settings.Visuals.Distance.Enabled then count = count + 1 end
 				if Settings.Visuals.Health.Enabled then count = count + 1 end
