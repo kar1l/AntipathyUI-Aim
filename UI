@@ -2,9 +2,6 @@
     Antipathy — Aim, Visuals & Rage (v5)
     UI-only file. All functional logic is in AntipathyFunctions.lua
     Load this from GitHub or locally — it returns the Settings table.
-
-    NEW: Rage tab, team check, shake/jitter, FOV spin, trail types,
-    avatar-size ESP, keybinds for all features, auto-lock toggle.
 ]]
 
 local Players = game:GetService("Players")
@@ -385,8 +382,8 @@ glowAlive = false
 
 -- Emerge out: scale up and fade out like the main UI appearing
 TweenService:Create(card, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-	Size = UDim2.new(0, FRAME_W, 0, FRAME_H),
-	Position = UDim2.new(0.5, -FRAME_W/2, 0.5, -FRAME_H/2)
+	Size = UDim2.new(0, 540, 0, 540),
+	Position = UDim2.new(0.5, -270, 0.5, -270)
 }):Play()
 TweenService:Create(card, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 	BackgroundTransparency = 1
