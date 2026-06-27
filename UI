@@ -2,6 +2,9 @@
     Antipathy — Aim, Visuals & Rage (v5)
     UI-only file. All functional logic is in AntipathyFunctions.lua
     Load this from GitHub or locally — it returns the Settings table.
+
+    NEW: Rage tab, team check, shake/jitter, FOV spin, trail types,
+    avatar-size ESP, keybinds for all features, auto-lock toggle.
 ]]
 
 local Players = game:GetService("Players")
@@ -628,15 +631,8 @@ task.spawn(function()
 			_footerGhost.TextTransparency = 0.6
 			_footerGhost.TextSize = bgFooter.TextSize + 1
 			_footerGhost.Visible = true
-			task.spawn(function()
-				local g = _footerGhost
-				for i=1,5 do
-					if not g or not g.Parent then break end
-					g.TextTransparency = g.TextTransparency + 0.08
-					task.wait(0.04)
-				end
-				if g and g.Parent then g.Visible = false end
-			end)
+			-- Use TweenService instead of spawning coroutines to prevent memory leak
+			TweenService:Create(_footerGhost, TweenInfo.new(0.2, Enum.EasingStyle.Linear), {TextTransparency = 1}):Play()
 		end
 		bgFooter.Position = UDim2.new(0, math.floor(bfx), 0, math.floor(bfy))
 		RunService.Heartbeat:Wait()
@@ -834,14 +830,13 @@ tabSepFolder.Name = "TabSepFolder"
 tabSepFolder.Parent = tabPanel
 
 local tabSep = Instance.new("Frame")
--- Stop the line at the bottom of the last tab (Settings) instead of going through the whole panel
--- 6 tabs * 70px + 5 gaps * 6px + 12px top padding = 462px total content height
-local _tabContentH = 6 * 70 + 5 * 6 + 12
-tabSep.Size = UDim2.new(0, 1, 0, _tabContentH)
+-- Dynamically sized: will be updated after tabs are created
+tabSep.Size = UDim2.new(0, 1, 1, 0)
 tabSep.Position = UDim2.new(0, 0, 0, 0)
 tabSep.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 tabSep.BorderSizePixel = 0
 tabSep.ZIndex = 51
+tabSep.ClipsDescendants = true
 tabSep.Parent = tabSepFolder
 
 local tabLayout = Instance.new("UIListLayout")
@@ -2682,10 +2677,22 @@ minimizeBtn.MouseButton1Click:Connect(function()
 		TweenService:Create(minimizeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, FRAME_W - 85, 0, 12)}):Play()
 		TweenService:Create(closeBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, FRAME_W - 42, 0, 12)}):Play()
 		task.spawn(function()
-			-- Emerging effect: start small and scale up smoothly
-			uiScale.Scale = deviceScale * 0.3
-			frame.BackgroundTransparency = 0.6
-			body.Visible = true; frame.Size = UDim2.new(0, FRAME_W, 0, FRAME_H)
+			-- Reverse of minimize: start from minimized state, glitch flicker, snap to full
+			local s = deviceScale; local op = frame.Position
+			-- Start from minimized size
+			frame.Size = UDim2.new(0, 320, 0, TOPBAR_H)
+			body.Visible = false
+			-- Glitch flicker phase (reverse of minimize — same jitter but expanding)
+			for _=1,5 do
+				uiScale.Scale = s*(0.7+math.random()*0.3)
+				frame.Position = op + UDim2.new(0, math.random(-15,15), 0, math.random(-15,15))
+				frame.BackgroundTransparency = math.random()*0.3
+				task.wait(0.03+math.random()*0.04)
+			end
+			-- Snap to full size (reverse of minimize's snap to small)
+			uiScale.Scale = s; frame.Position = op; frame.BackgroundTransparency = 0
+			frame.Size = UDim2.new(0, FRAME_W, 0, FRAME_H)
+			body.Visible = true
 			statusBar.Parent = frame
 			statusBar.AutomaticSize = Enum.AutomaticSize.None
 			statusBar.Size = UDim2.new(1, -TAB_PANEL_W, 0, STATUS_H)
@@ -2696,14 +2703,6 @@ minimizeBtn.MouseButton1Click:Connect(function()
 				sl.Size = UDim2.new(1, 0, 1, 0)
 				sl.TextXAlignment = Enum.TextXAlignment.Center
 			end
-			-- Glitch flicker during emerge
-			for i = 1, 6 do
-				uiScale.Scale = deviceScale * (0.3 + (i / 6) * 0.7) * (0.9 + math.random() * 0.2)
-				frame.BackgroundTransparency = 0.6 * (1 - i / 6) + math.random() * 0.1
-				task.wait(0.04 + math.random() * 0.03)
-			end
-			TweenService:Create(uiScale, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Scale = deviceScale}):Play()
-			TweenService:Create(frame, TweenInfo.new(0.15), {BackgroundTransparency = 0}):Play()
 		end)
 	else
 		isMinimized = true
